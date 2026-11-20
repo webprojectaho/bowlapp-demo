@@ -1,0 +1,1328 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Assistente Bowling</title>
+<meta name="description" content="Assistente in partita per il bowling: dimmi cosa non va e ti dico dove spostare piedi e mira. Versione di prova.">
+<meta name="theme-color" content="#0E131A" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#EEF1F4" media="(prefers-color-scheme: light)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bowling">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<script>window.BOWL_LABEL='Versione di prova 0.10.0';</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: una colonna da telefono, una schermata per volta, azione principale in fondo alla schermata. */
+:root{
+  --bg:#0E131A;--sf:#18212C;--ln:#334255;--bd:#62738A;--tx:#F2F4F7;--mu:#9AA7B5;
+  --ac:#FF8A3D;--ac-l:#FF8A3D;--ac-fg:#10151C;--ac-soft:rgba(255,138,61,.16);--in:#6CB8FF;--in-fg:#10151C;--gr:#AEB9C6;--lt:#AEB9C6;
+  --lane:#161F2A;--lane-ap:#111922;--lane-b:#232E3B;--lane-5:rgba(255,255,255,.045);--oil:rgba(108,184,255,.11);--pin:#E8ECF1;--pin-s:#E8ECF1;
+  --fg-sh2:#3D6C9A;--fg-tr2:#3A4556;--fg-so2:#8D96A2;--fg-hr:#8A6044;--st3:#0B1016;
+  --f-d:'Space Grotesk',Inter,'Helvetica Neue',Arial,sans-serif;--f-b:Inter,'Helvetica Neue',Arial,sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#EEF1F4;--sf:#FFFFFF;--ln:#C5CEDA;--bd:#7A8696;--tx:#10151C;--mu:#556170;
+  --ac:#B8500A;--ac-l:#9A3F00;--ac-fg:#FFFFFF;--ac-soft:rgba(184,80,10,.12);--in:#1F6FB5;--in-fg:#FFFFFF;--gr:#3F4A57;--lt:#3F4A57;
+  --lane:#EADFCB;--lane-ap:#DDD0B8;--lane-b:rgba(16,21,28,.10);--lane-5:rgba(16,21,28,.06);--oil:rgba(31,111,181,.13);--pin:#FFFFFF;--pin-s:#4A5563;
+  --fg-sh2:#174E80;--fg-tr2:#525C6A;--fg-so2:#2A323D;--fg-hr:#5A3E2C;--st3:#DCE2E9;
+  color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#EEF1F4;--sf:#FFFFFF;--ln:#C5CEDA;--bd:#7A8696;--tx:#10151C;--mu:#556170;
+  --ac:#B8500A;--ac-l:#9A3F00;--ac-fg:#FFFFFF;--ac-soft:rgba(184,80,10,.12);--in:#1F6FB5;--in-fg:#FFFFFF;--gr:#3F4A57;--lt:#3F4A57;
+  --lane:#EADFCB;--lane-ap:#DDD0B8;--lane-b:rgba(16,21,28,.10);--lane-5:rgba(16,21,28,.06);--oil:rgba(31,111,181,.13);--pin:#FFFFFF;--pin-s:#4A5563;
+  --fg-sh2:#174E80;--fg-tr2:#525C6A;--fg-so2:#2A323D;--fg-hr:#5A3E2C;--st3:#DCE2E9;
+  color-scheme:light}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);font-family:var(--f-b);font-size:15px;line-height:1.4}
+.app{max-width:440px;margin:0 auto;padding-block:16px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
+h1{font-family:var(--f-d);font-size:24px;line-height:1.2;margin:0;text-wrap:balance}
+h2{font:inherit;color:var(--mu);font-size:12.5px;margin:8px 0 0}
+p{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;text-align:left;cursor:pointer}
+button:focus-visible{outline:2px solid var(--in);outline-offset:2px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:24px}
+.eyebrow{color:var(--mu);font-size:12.5px;margin-bottom:2px}
+.mu{color:var(--mu);font-size:13.5px}
+.foot{color:var(--mu);font-size:12px;text-align:center;margin-top:6px}
+.hint{background:var(--ac-soft);border-radius:12px;padding:10px 14px;font-size:13.5px;display:flex;flex-direction:column;gap:10px}
+.hint.w{border:1.5px solid var(--ac)}
+.card{background:var(--sf);border-radius:14px;padding:12px 14px}
+.card.col{display:flex;flex-direction:column;gap:10px}
+.tag{font-size:12px;font-weight:700;letter-spacing:.6px;color:var(--ac);margin-bottom:3px;text-transform:uppercase}
+.tag2{font-size:12px;color:var(--mu);border:1px solid var(--bd);border-radius:20px;padding:2px 8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.t{font-weight:600}
+.big{font-family:var(--f-d);font-size:20px;font-weight:700;line-height:1.25}
+.btn,.btn2{min-height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;flex:1;padding:8px 14px}
+.btn{background:var(--ac);color:var(--ac-fg)}
+.btn2{border:1.5px solid var(--bd);font-weight:600}
+.dis{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px}
+.opt{width:100%;border:1.5px solid var(--bd);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:600;min-height:50px}
+.opt.xl{min-height:68px;font-size:16.5px}
+.opt small{display:block;color:var(--mu);font-size:12.5px;font-weight:400;margin-top:2px}
+.chev{flex:none;color:var(--mu)}
+.oi{display:flex;align-items:center;gap:12px;min-width:0}
+.ic{flex:none;width:44px;height:44px;display:block}
+.ic .ib{fill:var(--ac-soft)}
+.ic .is{fill:none;stroke:var(--ac-l);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ic .is2{fill:none;stroke:var(--gr);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ic .if{fill:var(--ac-l)}.ic .ig{fill:var(--gr);opacity:.6}.ic .ih{fill:var(--bg)}
+.ic .ip{fill:var(--pin);stroke:var(--pin-s);stroke-width:1}
+.ic .iq{fill:var(--ac-l);font:700 24px var(--f-d)}
+.tl{display:flex;align-items:center;gap:10px}.tl .ic{width:32px;height:32px}
+.gi{display:flex;align-items:flex-start;gap:12px}.gi>div{min-width:0;flex:1}
+.tri{display:flex;gap:8px}.tri>div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;font-size:12.5px;color:var(--mu)}
+.tri .ic{width:56px;height:56px}
+.back{color:var(--mu);font-size:13.5px;min-height:44px;display:inline-flex;align-items:center;gap:4px}
+.lnk{color:var(--in);font-weight:600;font-size:13.5px;min-height:44px;display:inline-flex;align-items:center}
+.gl{color:inherit;font-weight:600;text-decoration:underline dotted;text-underline-offset:3px;display:inline}
+.seg{display:flex;gap:6px;flex:1}.seg i{flex:1;height:5px;border-radius:3px;background:var(--ln)}.seg i.f{background:var(--ac)}
+.nums{display:flex;gap:18px;flex-wrap:wrap}
+.nums>div{flex:1;min-width:120px}
+.nums span,.nums small{display:block;color:var(--mu);font-size:12.5px}
+.nums b{font-family:var(--f-d);font-size:20px;font-variant-numeric:tabular-nums}
+.sw{display:flex;border:1.5px solid var(--bd);border-radius:12px;overflow:hidden}
+.sw button{padding:4px 10px;min-height:44px;font-size:13px;font-weight:600;color:var(--mu);flex:1;text-align:center}
+.sw button[aria-pressed="true"]{background:var(--ac-soft);color:var(--tx);font-weight:700;box-shadow:inset 0 0 0 2px var(--ac)}
+.sw button[aria-pressed="true"]::before{content:"✓ "}
+@media (max-width:360px){.sw button{padding:4px 6px}.sw button[aria-pressed="true"]::before{content:""}}
+.step{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.step .pm{display:flex;align-items:center;gap:10px;flex:none}
+.step .pm button{width:48px;height:48px;border-radius:12px;border:1.5px solid var(--bd);text-align:center;font-weight:700;font-size:20px}
+.step .pm b{font-family:var(--f-d);font-size:20px;min-width:30px;text-align:center;font-variant-numeric:tabular-nums}
+.lanebox svg{display:block;width:100%;height:auto;border-radius:10px}
+.card .lanebox{margin-top:10px}
+.lg{display:flex;gap:16px;font-size:12.5px;color:var(--mu);flex-wrap:wrap}
+.lg i{display:inline-block;width:22px;height:0;border-top:3.5px solid var(--ac-l);margin-right:6px;vertical-align:middle}
+.lg i.d{border-top:1.5px dashed var(--gr)}
+.deck{display:flex;flex-direction:column;align-items:center;gap:6px}
+.deck div{display:flex;gap:9px}
+.pn{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;border:1.5px solid var(--bd);color:var(--mu)}
+.pn.a{background:var(--ac);border-color:var(--ac);color:var(--ac-fg)}.pn.b{background:var(--in);border-color:var(--in);color:var(--in-fg)}
+.pb{width:46px;height:46px;font-size:15px;color:var(--tx)}.pb.a{color:var(--ac-fg)}
+.dy{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--ln)}
+.dy:first-child{border-top:0;padding-top:0}.dy:last-child{padding-bottom:0}
+.pill{flex:none;font-size:12px;font-weight:700;border-radius:20px;padding:2px 8px;border:1px solid var(--bd);color:var(--mu)}
+.pill.ok{border-color:var(--ac);color:var(--tx);background:var(--ac-soft)}
+.advr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.fbo{display:flex;flex-wrap:wrap;gap:8px}
+.fbo button{border:1.5px solid var(--bd);border-radius:20px;padding:6px 12px;min-height:44px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center}
+.fbo button[aria-pressed="true"]{background:var(--ac-soft);border-color:var(--ac);box-shadow:inset 0 0 0 1px var(--ac)}
+.fbt{display:block;width:100%;min-height:76px;border:1.5px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx);font:inherit;font-size:16px;padding:10px 12px;resize:vertical}
+.fbt:focus-visible{outline:2px solid var(--in);outline-offset:2px}
+.fbt.fbx{font-size:13px;min-height:180px}
+.sb{display:grid;grid-template-columns:repeat(9,1fr) 1.5fr;gap:2px;background:var(--sf);border-radius:12px;padding:6px}
+.sb>div{display:flex;flex-direction:column;align-items:center;gap:1px;padding:3px 0;border-radius:6px;min-width:0}
+.sb>div.on{background:var(--ac-soft);box-shadow:inset 0 0 0 1.5px var(--ac)}
+.sb i{font-style:normal;font-size:10px;color:var(--mu)}
+.sb b{font-size:12px;min-height:17px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sb span{font-family:var(--f-d);font-size:12.5px;font-weight:700;min-height:17px;font-variant-numeric:tabular-nums}
+@media (max-width:360px){.sb{padding:4px;gap:1px}.sb b{font-size:10.5px}.sb span{font-size:11px}}
+.pn.gx{opacity:.28;border-style:dashed}
+.ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+a.lnk{text-decoration:none}
+.ph{display:block;width:100%;max-height:70vh;object-fit:contain;border-radius:10px;background:var(--bg)}
+.phs{max-height:44vh}
+.fg{display:block;width:100%;height:auto;border-radius:10px;background:var(--bg);--sk:#E3BC9A;--sk2:#C99D7B;--shc:var(--in);--trc:var(--bd);--shoe:var(--tx)}
+.fg polyline{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.fxfar{--sk:#A9856A;--sk2:#8E6E56;--shc:var(--fg-sh2);--trc:var(--fg-tr2);--shoe:var(--fg-so2)}
+polyline.fxk{stroke:var(--sk)}path.fxk{fill:var(--sk)}.fxk.a{stroke-width:9}.fxk.hn{stroke-width:9.5}.fxk.n{stroke-width:7.5}.fxk2{fill:var(--sk2)}
+polygon.fxsh{fill:var(--shc);stroke:var(--shc);stroke-width:3;stroke-linejoin:round}polyline.fxsh{stroke:var(--shc);stroke-width:11.5}
+.fxsp{stroke:#fff;stroke-width:3;opacity:.38}
+.fxtr{stroke:var(--trc)}.fxtr.th{stroke-width:13.5}.fxtr.sn{stroke-width:11.5}.fxtr.pv{stroke-width:17.5}
+.fxha{stroke:var(--bg)}polygon.fxha{fill:var(--bg);stroke-width:7.5;stroke-linejoin:round}.fxha.l{stroke-width:15}.fxha.a{stroke-width:11.5}
+.fxso{fill:var(--shoe)}.fxsl{fill:none;stroke:var(--ac);stroke-width:2;stroke-linecap:round}
+.fxhr{fill:var(--fg-hr)}.fxey{fill:#1B222C}.fxli{fill:none;stroke:#1B222C;stroke-width:.9;stroke-linecap:round;opacity:.75}
+.fxb{fill:var(--ac)}.fxbh{fill:rgba(0,0,0,.55)}.fxbl{fill:#fff;opacity:.35}
+.fxfl{fill:var(--lane-ap)}.fxln{fill:var(--lane)}.fxfo{stroke:var(--tx);stroke-width:2.5}.fxs{stroke:#000;stroke-width:3.5;opacity:.3}
+.fxt{stroke:var(--ac-l);stroke-width:2.2;stroke-dasharray:.1 6.5;opacity:.6}
+.fxq circle{fill:none;stroke:var(--ac-l);stroke-width:2;stroke-dasharray:3 3}
+.fxq text{fill:var(--tx);font:600 11.5px var(--f-b);paint-order:stroke;stroke:var(--bg);stroke-width:3.5px;stroke-linejoin:round}
+.fxp{stroke:var(--ln);stroke-width:3;stroke-linecap:round}.fxpf{stroke:var(--ac);stroke-width:3}.fxpt{fill:var(--bg);stroke:var(--mu);stroke-width:1.5}
+.fgc{fill:var(--tx);font:600 13px var(--f-b)}.fgn{fill:var(--mu);font:10.5px var(--f-b)}
+.fgs{display:flex;gap:6px}.fgs>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;text-align:center;font-size:12px;color:var(--mu)}
+.fgk{display:flex;gap:8px}.fgk .sw{flex:1.5}.fgk .btn2{min-height:44px;padding:4px 8px;font-size:13.5px}
+.g3st{position:relative;border-radius:10px;overflow:hidden;background:var(--st3);height:300px;touch-action:none}
+.g3w{position:absolute;inset:0}.g3w canvas{display:block;width:100%;height:100%;cursor:grab}
+.g3top{position:absolute;left:0;right:0;top:9px;display:flex;flex-direction:column;gap:7px;padding:0 16px;pointer-events:none}
+.g3cap{text-align:center;font-weight:700;font-size:14px;line-height:1.25;text-wrap:balance;text-shadow:0 0 6px var(--st3),0 0 2px var(--st3)}
+.g3bar{position:relative;height:3px;border-radius:2px;background:var(--ln)}
+.g3bar b{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:var(--ac)}
+.g3bar i{position:absolute;top:-3px;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:var(--st3);border:2px solid var(--mu)}
+.g3lbl{position:absolute;transform:translate(-50%,-50%);font-size:12px;font-weight:600;pointer-events:none;white-space:nowrap;transition:opacity .15s;text-shadow:0 0 5px var(--st3),0 0 2px var(--st3)}
+.g3ld{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mu);font-size:14px;padding:16px;text-align:center}
+.g3g{display:flex;flex-direction:column;gap:6px}.g3g>span{color:var(--mu);font-size:13px}
+.sw.g3v button{padding:4px 2px;font-size:12.5px;white-space:nowrap}.g3g .sw button[aria-pressed="true"]::before{content:""}
+.sbe>button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 0;border-radius:6px;min-width:0;min-height:58px;text-align:center}
+.sbe>button.on{background:var(--ac-soft);box-shadow:inset 0 0 0 1.5px var(--ac)}
+.sbe>button.bad i{color:var(--ac-l);font-weight:700}.sbe>button.bad span{text-decoration:underline wavy var(--ac-l);text-underline-offset:3px}
+.kp{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.kp button{min-height:48px;border-radius:12px;border:1.5px solid var(--bd);text-align:center;font-family:var(--f-d);font-weight:700;font-size:17px}
+.sheet{position:sticky;bottom:12px;background:var(--sf);border:1.5px solid var(--bd);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+/* disegni: pieno = adesso, contorno sottile = prima, tratteggio = stima */
+.lb{fill:var(--lane)}.la{fill:var(--lane-ap)}.lo{fill:var(--oil)}.l5{fill:var(--lane-5)}.gt{fill:var(--bg)}
+.ll{stroke:var(--lane-b);stroke-width:.6}.lf{stroke:var(--tx);stroke-width:2}
+.lt{fill:var(--lt);font-family:var(--f-b)}.ltb{fill:var(--tx);font-family:var(--f-b);font-weight:700}
+.lm{fill:var(--mu)}.lp{fill:var(--pin);stroke:var(--pin-s);stroke-width:1.2}.lpx{fill:var(--mu);opacity:.6}
+.pA{fill:none;stroke:var(--gr);stroke-dasharray:5 4;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
+.pN{fill:none;stroke:var(--ac-l);stroke-linecap:round;stroke-linejoin:round}
+.mA{fill:none;stroke:var(--gr);stroke-width:1.5}.mN{fill:var(--ac-l)}
+.ring{fill:none;stroke:var(--ac-l);stroke-width:2.5}.ta{fill:var(--ac-l);font-family:var(--f-b);font-weight:700}
+.sO{fill:none;stroke:var(--gr);stroke-width:1.3;opacity:.75}.sN{fill:var(--ac-l)}.sN2{fill:none;stroke:var(--ac-l);stroke-width:1.5}
+.sN3{fill:var(--ac-l);opacity:.38}
+.wk{stroke:var(--ac-l);stroke-width:1;opacity:.6;fill:none}
+.bz{fill:var(--ac-soft);stroke:var(--ac-l);stroke-width:1.2}.bz.e{stroke-dasharray:4 3}
+.sR{fill:var(--bg);stroke:var(--tx);stroke-width:1}.ie{stroke:var(--tx);stroke-width:3;stroke-linecap:round}
+.dim{fill:none;stroke:var(--tx);stroke-width:1;opacity:.85}.dimt{fill:var(--tx);font-family:var(--f-b);font-weight:700}.fb{fill:var(--ln);stroke:var(--mu);stroke-width:1}
+.mvl{stroke:var(--tx);stroke-width:3;stroke-linecap:round}.mvh{fill:var(--tx)}.tick{fill:var(--ac-l);opacity:.55}
+@media (prefers-reduced-motion: no-preference){.btn,.btn2,.opt{transition:background-color .12s}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<input type="file" accept="image/*" id="gfile" hidden tabindex="-1" aria-hidden="true">
+
+<script>
+const KEY='bowl-proto7';
+const INIT=()=>({hand:'R',sty:1,lay:6,line:{start:19,orient:0,arrive:19,target:10},own:false,setup:false,ball:'hook',ballKnown:true,spb:false,bpo:null,today:null,todayAt:'',spl:{},diary:[],adv:false,
+ view:'setup',su:0,prob:null,step:0,ans:{},res:null,phase:0,note:'',back:'home',sp:[],gl:null,lookQ:null,layBack:'home',profBack:'home',lineEdit:'base',fresh:false,wipe:false,rdl:null,rdn:0,fb:[],fbs:null,fbc:'',gm:null,games:[],gsel:[],gq:false,gdq:null,spFrom:'',shc:'',ex:null,exc:null,gpt:null,gph:null,ge:null,gan:null,exFrom:'',exa:null,exp:false,ext:0,exk:null,exs:false});
+const S=INIT();
+try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d){
+ if(d.hand==='L'||d.hand==='R')S.hand=d.hand;if(d.sty===2)S.sty=2;if(d.line&&d.line.start)S.line=d.line;if(Array.isArray(d.diary))S.diary=d.diary;
+ S.own=!!d.own;S.setup=!!d.setup;S.adv=!!d.adv;if(d.ball==='str'||d.ball==='hook')S.ball=d.ball;S.ballKnown=d.ballKnown!==false;S.spb=!!d.spb;
+ if(d.lay>=4&&d.lay<=10)S.lay=d.lay;if(d.bpo>=1&&d.bpo<=39)S.bpo=d.bpo;if(d.today&&d.today.start){S.today=d.today;S.todayAt=d.todayAt||'';}if(d.splv===2&&d.spl&&typeof d.spl==='object')S.spl=d.spl;if(Array.isArray(d.fb))S.fb=d.fb.slice(0,40);
+ if(d.gm&&Array.isArray(d.gm.r))S.gm=d.gm;if(Array.isArray(d.games))S.games=d.games.filter(g=>g&&Array.isArray(g.r)).slice(0,50);}}catch(e){}
+/* Due linee da strike: S.line è l'abituale, S.today quella di oggi (null se coincidono). I consigli partono da cur(). */
+const DAY=(()=>{const d=new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;})();
+if(S.setup)S.view=S.today&&S.todayAt!==DAY?'endday':'home';
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({hand:S.hand,sty:S.sty,line:S.line,diary:S.diary,own:S.own,setup:S.setup,adv:S.adv,ball:S.ball,ballKnown:S.ballKnown,spb:S.spb,lay:S.lay,bpo:S.bpo,today:S.today,todayAt:S.todayAt,spl:S.spl,splv:2,fb:S.fb,gm:S.gm,games:S.games}))}catch(e){}};
+const LABEL=()=>window.BOWL_LABEL||'Prototipo · versione 25';
+const RH=()=>S.hand==='R',out=()=>RH()?'destra':'sinistra',inn=()=>RH()?'sinistra':'destra',foot=()=>RH()?'sinistro':'destro';
+/* Stile di tiro: 1 = una mano, 2 = due mani. Piedi e mira si calcolano allo stesso modo; cambiano spare, velocità ed esercizi sul gesto. */
+const TWO=()=>S.sty===2;
+const MIR={1:1,2:3,3:2,4:6,5:5,6:4,7:10,8:9,9:8,10:7},P=n=>RH()?n:MIR[n];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const CHEV='<svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
+const defLine=()=>{const a=S.ball==='str'?14:19;return{start:a,orient:S.line.orient||0,arrive:a,target:10};};
+const cur=()=>S.today||S.line,same=(a,b)=>a.start===b.start&&a.arrive===b.arrive&&a.orient===b.orient&&a.target===b.target;
+const edv=()=>S.lineEdit==='today'&&S.today?S.today:S.line;
+const ed=()=>{if(S.lineEdit!=='today')return S.line;if(!S.today)S.today={...S.line};S.todayAt=DAY;return S.today;};
+/* Se la linea abituale cambia sotto uno spostamento di oggi ancora senza numeri, lo spostamento le resta applicato sopra. */
+const carry=fn=>{const t=S.today,ds=t?t.start-S.line.start:0,dt=t?t.target-S.line.target:0;fn();if(t){const l=S.line;S.today={orient:l.orient,start:clamp(l.start+ds,1,39),arrive:clamp(l.arrive+ds,1,39),target:clamp(l.target+dt,1,39)};}};
+/* Orientamento abituale, scelto in configurazione o nel profilo. Con la linea impostata sposta l'arrivo, come nella scheda della linea.
+   Senza linea resta solo un dato: i numeri di esempio non cambiano, perché i consigli sono spostamenti relativi. */
+const orV=v=>v==='dr'?0:((v==='sx')===RH()?1:-1);
+const setOr=o=>{if(o===S.line.orient)return;carry(()=>{const l=S.line;l.orient=o;if(S.own)l.arrive=clamp(l.start+o*3,1,39);});};
+/* Chi parte girato e apre la scheda per la prima volta: la linea di esempio prende l'arrivo come farebbe il selettore della scheda.
+   Se con quei numeri di esempio non funziona, si sposta la mira di esempio: la scheda non deve aprirsi con un errore su numeri non suoi. */
+const preLine=()=>{const l=S.line;if(!S.own&&l.orient&&l.arrive===l.start)carry(()=>{l.arrive=clamp(l.start+3*l.orient,1,39);if(chkLine(l).bad){const t=fixLine(l);if(t)l.target=t;}});};
+const todayMv=()=>{const t=S.today,l=S.line,df=t.start-l.start,dt=t.target-l.target,o=t.orient!==l.orient;return df||dt||o?moveSum(df,dt)+(o?', piedi '+orientTxt(t):''):"Cambia solo l'arrivo in scivolata";};
+
+/* ---- parole: ogni numero ha un riferimento che in pista si vede ---- */
+const pl=n=>`${n} listell${n===1?'o':'i'}`,dirOf=d=>d>0?inn():out();
+const mvTxt=d=>d===0?'':`${pl(Math.abs(d))} a ${dirOf(d)}`;
+const tgName=t=>{const a=clamp(Math.round(t/5)*5,5,35),d=t-a,f=`${a/5}ª freccia da ${out()}`;return d===0?`la ${f}`:`${pl(Math.abs(d))} a ${dirOf(d)} della ${f}`;};
+const dotName=a=>a===20?'puntino centrale':`puntino del ${a}`;
+const dotNote=b=>{const a=clamp(Math.round(b/5)*5,5,35);return a===5||a===35?` Se sulla tua pedana i puntini sono cinque, quello del ${a} non c'è: è 5 listelli oltre l'ultimo.`:'';};
+const ftName=b=>{const a=clamp(Math.round(b/5)*5,5,35),d=b-a;return d===0?`sul ${dotName(a)}`:`${pl(Math.abs(d))} a ${dirOf(d)} del ${dotName(a)}`;};
+const shoeTxt=n=>{const w=Math.floor(n/4),f=n%4,F=['','un quarto','mezza','tre quarti'][f],Wd=['','una scarpa','due scarpe','tre scarpe','quattro scarpe'][Math.min(w,4)];
+ if(!n)return'';if(!w)return'circa '+(f===2?'mezza scarpa':F+' di scarpa');return'circa '+Wd+(f?' e '+F:'');};
+const G={
+ listello:['Listello','Le assi strette che formano la pista. Sono 39 e si contano partendo dal lato della mano con cui tiri.'],
+ frecce:['Frecce','I sette triangoli disegnati sulla pista, quattro o cinque metri dopo la linea di fallo. Sono una ogni 5 listelli: la seconda dal tuo lato è sul listello 10.'],
+ puntini:['Puntini della pedana','I punti segnati sulla pedana, dove parti. Sono uno ogni 5 listelli: quello centrale è sul listello 20. Alcune sale ne hanno sette, dal 5 al 35, altre cinque, dal 10 al 30.'],
+ tasca:['Tasca',()=>`Il punto giusto per lo strike: tra il birillo 1 e il ${P(3)}.`],
+ curva:['Break point (punto di rottura)','Il punto in cui la palla smette di scivolare e comincia a curvare verso i birilli. Nel disegno è una fascia e non un punto preciso, perché è una stima.'],
+ hook:['Hook (gancio)',()=>`Il tiro in cui la palla curva negli ultimi metri verso i birilli centrali: verso ${inn()} per chi tira con la ${RH()?'destra':'sinistra'}.`],
+ incrociato:['Tiro incrociato','Parti dal lato opposto al birillo e fai attraversare la pista alla palla in diagonale.'],
+ spareball:['Palla da spare',"Una palla in plastica che non curva. Si usa per i birilli rimasti, soprattutto quelli d'angolo."],
+ duemani:['Tiro a due mani',"Tutte e due le mani restano sulla palla per tutta l'oscillazione, fino al rilascio. Una resta la mano dominante: è quella che dà la spinta. Di solito il pollice resta fuori dalla palla, e questo rende più facile farla girare molto: per questo curva di più."],
+ piedepalla:['Distanza piede-palla','I listelli tra il piede con cui scivoli e il punto in cui la palla tocca la pista.'],
+ orient:['Orientamento di piedi e spalle','Di solito si parte dritti verso i birilli. Chi parte girato verso il punto dove mira arriva alla linea di fallo in un punto diverso: qui indichi se parti dritto o girato, e da che parte. L\'app parte da 3 listelli di differenza, che è una stima: per misurarla resta fermo a fine tiro, guarda su quale listello è il piede e correggi l\'arrivo nella tua linea.'],
+ scarpa:['La scarpa come misura','Una scarpa da bowling è larga circa 4 listelli, quindi mezza scarpa sono circa 2 listelli. È una misura a occhio.'],
+ tresei:['Sistema 3-6-9','Per i birilli sul lato opposto alla mano: stessa mira e piedi spostati di 3, 6 o 9 listelli.'],
+ split:['Split','Birilli rimasti lontani tra loro, senza il birillo 1 davanti.'],
+ linee:['Linea abituale e linea di oggi','La linea abituale è quella da cui parti di solito. La linea di oggi è quella che stai usando in questa serata: le correzioni che funzionano spostano questa. A fine serata scegli se farla diventare la tua linea abituale.'],
+ frame:['Frame','Uno dei dieci turni di una partita. In ogni frame hai due tiri per abbattere i dieci birilli: se cadono tutti al primo è strike e il secondo non si tira.'],
+ punteggio:['Come si conta il punteggio','Ogni frame vale i birilli abbattuti. Lo strike vale 10 più i birilli dei due tiri successivi, lo spare 10 più quelli del tiro successivo: per questo il totale compare qualche tiro dopo. Nel decimo frame lo strike dà due tiri in più e lo spare uno. Il massimo è 300.']
+};
+const gw=(k,t)=>`<button class="gl" data-act="gl" data-v="${k}">${t}</button>`;
+const gdef=k=>typeof G[k][1]==='function'?G[k][1]():G[k][1];
+
+const PROB={
+ corner:{name:()=>`Resta sempre il ${P(10)}`,qs:[
+  {id:'six',deck:true,t:()=>`Dove va il birillo ${P(6)}?`,s:()=>`È quello davanti al ${P(10)}. Guardalo nel momento dell'impatto.`,o:()=>[
+   ['debole','Finisce nel canale',`Passa davanti al ${P(10)} senza toccarlo`],
+   ['secco','Va dritto verso il fondo',`Passa a ${inn()} del ${P(10)} senza toccarlo`],
+   ['boh',"Non l'ho visto",'Ti dico cosa guardare al prossimo tiro']]},
+  {id:'hit',t:()=>'Dove colpisce la palla?',s:()=>`Rispetto alla ${gw('tasca','tasca')}, tra il birillo 1 e il ${P(3)}.`,o:()=>[
+   ['tasca','In tasca piena',''],['leggera',"Un po' leggera",`Più verso il birillo ${P(3)}`],['alta',"Un po' alta",'Più verso il birillo 1'],['varia','Cambia a ogni tiro',''],
+   ['boh','Non lo so','Ti dico cosa guardare al prossimo tiro']]}]},
+ pocket:{name:()=>'Non entro in tasca',qs:[
+  {id:'where',t:()=>'Dove finisce la palla?',s:()=>`Guarda dove tocca i birilli rispetto alla ${gw('tasca','tasca')}.`,o:()=>[
+   ['dx',`A ${out()} della tasca`,`Leggera, o sul birillo ${P(3)}`],['sx',`A ${inn()} della tasca`,'Alta, piena sul birillo 1'],['sx2',"Dall'altro lato del birillo 1",`Lo prende da ${inn()}`],['varia','Cambia a ogni tiro',''],
+   ['boh','Non lo so','Ti dico cosa guardare al prossimo tiro']]},
+  {id:'aim',t:()=>'La palla passa dove miri?',s:()=>S.own?`La tua mira adesso: ${tgName(cur().target)}.`:`Cioè sul punto delle ${gw('frecce','frecce')} che guardi quando tiri.`,o:()=>[
+   ['si','Sì, quasi sempre',''],['no','No, spesso lo manco',''],['boh','Non lo so','']]}]}
+};
+PROB.change={name:()=>'Prima andava, ora no',qs:PROB.pocket.qs};
+PROB.vary={name:()=>'Ogni tiro è diverso',qs:[{id:'vary',t:()=>"Cosa cambia da un tiro all'altro?",s:()=>'Scegli la cosa che noti di più.',o:()=>[
+ ['mira','Dove passa la palla alle frecce','A volte sulla mira, a volte no'],['vel','La velocità della palla','A volte forte, a volte piano'],['piedi','Il punto da cui parto','Non controllo sempre i piedi'],['arrivo','Il punto in cui arrivo alla linea','La scivolata non finisce sempre sullo stesso listello'],
+ ['boh','Non lo so','Ti dico cosa guardare al prossimo tiro']]}]};
+PROB.aimside={name:()=>'Manco la mira sempre dallo stesso lato',qs:[{id:'side',t:()=>'Da che parte passa la palla rispetto alla mira?',s:()=>`Guarda le ${gw('frecce','frecce')}, non i birilli.`,o:()=>[
+ ['in',`A ${inn()} della mira`,'Dal lato opposto alla mano che tira'],['out',`A ${out()} della mira`,'Dal lato della mano che tira'],['varia','A volte di qua, a volte di là',''],
+ ['boh','Non lo so','Ti dico cosa guardare al prossimo tiro']]}]};
+PROB.balance={name:()=>"Perdo l'equilibrio a fine tiro",qs:[]};
+const LOOK={six:()=>`Tieni gli occhi sul birillo ${P(6)}, quello davanti al ${P(10)}, nel momento in cui la palla colpisce. Conta solo dove va: nel canale passando davanti al ${P(10)}, oppure dritto verso il fondo passando a ${inn()} del ${P(10)}.`,
+ hit:()=>`Guarda il birillo 1 nel momento dell'impatto. Se la palla lo prende di lato, verso il ${P(3)}, è leggera. Se lo prende quasi di fronte è alta.`,
+ where:()=>`Guarda il birillo 1 nel momento dell'impatto. Se la palla passa dal lato del ${P(3)} è a ${out()} della tasca. Se lo prende di fronte è a ${inn()}. Se lo prende dal lato del ${P(2)} è passata dall'altro lato.`,
+ side:()=>`Al prossimo tiro tieni gli occhi sulla freccia dove miri finché la palla ci passa sopra. Conta solo da che parte passa: a ${inn()} o a ${out()} della mira.`,
+ vary:()=>'Al prossimo tiro guarda una cosa sola: se la palla passa sulla freccia dove miri. È la prima cosa da rendere uguale a ogni tiro.'};
+const RECAP={six:{debole:()=>`${P(6)} nel canale`,secco:()=>`${P(6)} dritto verso il fondo`},hit:{tasca:()=>'colpo in tasca',leggera:()=>'colpo leggero',alta:()=>'colpo alto',varia:()=>'impatto che cambia'},
+ where:{dx:()=>`a ${out()} della tasca`,sx:()=>`a ${inn()} della tasca`,sx1:()=>"un po' alta",sx2:()=>"dall'altro lato del birillo 1",varia:()=>'ogni volta diverso'},side:{in:()=>`a ${inn()} della mira`,out:()=>`a ${out()} della mira`,varia:()=>'da tutte e due le parti'},aim:{si:()=>'la palla passa dove miro',no:()=>'manco la mira',boh:()=>'mira: non lo so'},vary:{mira:()=>'cambia la mira',vel:()=>'cambia la velocità',piedi:()=>'cambia la partenza',arrivo:()=>"cambia l'arrivo alla linea"}};
+
+function solve(){const a=S.ans,l=cur(),str=S.ball==='str';let r;
+ const tgt=S.own?tgName(l.target):'il punto dove miri';
+ const cons=(t,why)=>({title:t,why,df:0,dt:0,none:true,xe:16.5,now:'Per ora tieni la stessa linea',planB:`Fai 10 tiri guardando solo ${tgt}. Quando almeno 7 ci passano sopra, ripeti le domande.`});
+ const tip=(title,why,planB,ico)=>({title,why,df:0,dt:0,none:true,end:true,tagB:'Esercizio',ico,xe:17.5,now:'Tieni la stessa linea',planB});
+ const lst=(title,why,chk,exs,src)=>({title,why,df:0,dt:0,none:true,end:true,tagB:'Cosa controllare, in ordine',xe:17.5,now:'Tieni la stessa linea',planB:chk[0],chk,exs,src});
+ const mira=()=>tip('Prima la mira, poi la linea','Finché la palla non passa ogni volta dallo stesso punto, spostare i piedi non serve.',
+   `Guarda ${tgt}, non i birilli, e tieni gli occhi lì finché la palla ci passa sopra. Fai 10 tiri e conta quante volte ci passa: l'obiettivo è 7.`,'aim');
+ if(S.prob==='corner'){const cp=P(10),fp=P(6);
+  if(a.hit==='varia')r=cons('Prima la costanza, poi la linea',"Hai detto che l'impatto cambia a ogni tiro. In questo caso spostare i piedi non serve: la causa è nel rilascio o nella mira.");
+  else if(a.hit==='alta')r={title:"Prima l'impatto: la palla arriva alta",why:`Con un colpo alto il ${cp} è una conseguenza. Riporta la palla in tasca e poi rivaluta.`,df:2,dt:1,xe:19.5,planB:`Se resta alta, un altro listello a ${inn()} con i piedi.`,pb:[1,0]};
+  else if(a.six==='debole'){const lg=a.hit==='leggera';r={title:lg?`${cp} con colpo leggero`:`${cp}: il colpo è un po' leggero`,
+    why:`Se il ${fp} finisce nel canale passando davanti al ${cp}, la palla ha colpito leggera${lg?'':', anche se sembra in tasca'}. Basta poco: piedi 1 listello a ${out()} e stessa mira.`,df:-1,dt:0,xe:lg?16.5:17.5,
+    planB:lg?`Se resta leggera, un altro listello a ${out()} con i piedi.`:'Se ora arriva alta, torna alla linea di prima.',pb:lg?[-1,0]:[1,0]};}
+  else if(a.hit==='leggera')r={title:"Prima l'impatto: la palla arriva leggera",why:`Con un colpo leggero il ${cp} è una conseguenza. Riporta la palla in tasca e poi rivaluta.`,df:-2,dt:-1,xe:15.5,planB:`Se resta leggera, un altro listello a ${out()} con i piedi.`,pb:[-1,0]};
+  else r={title:`${cp}: il colpo è un po' alto`,why:`Se il ${fp} parte dritto verso il fondo e passa a ${inn()} del ${cp}, la palla ha preso il birillo 1 un po' troppo pieno, anche se sembra in tasca. Basta poco: piedi 1 listello a ${inn()} e stessa mira.`,df:1,dt:0,xe:18.5,planB:'Se ora arriva leggera, torna alla linea di prima.',pb:[-1,0]};
+ }else if(S.prob==='balance'){
+  r=lst("Prima l'equilibrio, poi la linea",`Le guide collegano la posizione a fine tiro alla precisione sulla mira. Finché non resti fermo in equilibrio, spostare piedi e mira non serve.${TWO()?' Le guide lette sono scritte per chi tira a una mano.':''}`,[
+   "Nel passo prima della scivolata vai verso il centro del corpo, poi scivola sotto il mento. Se scivoli lontano dal centro devi saltellare o appoggiare l'altra gamba per restare in piedi.",
+   "Tieni le ginocchia morbide per tutta la rincorsa. Con le gambe rigide l'equilibrio si perde.",
+   'Scivola con la scarpa rivolta ai birilli.',
+   `Porta la gamba dietro verso ${inn()}, con la scarpa che resta a contatto con la pedana.`,
+   'Resta fermo in posizione finché la palla arriva ai birilli.',
+   "Se cadi sempre dallo stesso lato, controlla la direzione in cui mandi la palla all'avvio e nell'oscillazione."],
+   TWO()?['dmfermo','dmpasso']:['fermo','passo'],['bbFall','usbcSt','nbaAp']);
+ }else if(S.prob==='aimside'){const eyes='Tieni gli occhi sulla mira finché la palla ha lasciato la mano. Non alzarli prima.',
+   far=`Una guida dice che chi parte a più di 10 listelli dalla mira deve aprire un poco i piedi verso la mira, altrimenti il corpo resta chiuso.${S.own?` Tu parti dal listello ${l.start} e miri al ${l.target}: ${Math.abs(l.start-l.target)} listelli.`:''}`,
+   hole='Fai controllare la foratura della palla: foro del pollice stretto o presa corta impediscono un rilascio pulito.',
+   two='Le altre cause descritte dalle guide riguardano il braccio di chi tira a una mano. Per le due mani non ho ancora una guida.',
+   seen='Da solo il tempo tra palla e passi si vede male: fatti guardare da qualcuno.';
+  if(a.side==='varia')r=mira();
+  else if(a.side==='in')r=lst(`La palla passa a ${inn()} della mira`,"Le guide lo chiamano pulling (tirare la palla verso l'interno) e ne danno più cause. Da qui non posso sapere quale sia la tua: controllale in quest'ordine, una per volta.",
+   TWO()?[eyes,far,hole,two]
+   :[eyes,"Non afferrare la palla nel punto più basso dell'oscillazione: lasciala scendere senza forzare.",
+     'Avvia la palla dritta verso la mira, non di lato. Una guida consiglia di tenerla in partenza tra la spalla e il centro del petto.',far,
+     `Conta anche il tempo tra palla e passi: sia arrivare tardi con la palla sia arrivare presto fa finire il tiro a ${inn()}. ${seen}`,hole],
+   TWO()?[]:['avvio','braccio','presa'],['bbPull','usbcTm','nbaAp']);
+  else r=lst(`La palla passa a ${out()} della mira`,"Le guide ne danno più cause. Da qui non posso sapere quale sia la tua: controllale in quest'ordine, una per volta.",
+   TWO()?[eyes,"Cammina dritto, un piede davanti all'altro come su una linea.",two]
+   :[eyes,`In partenza tieni la palla sotto il mento, poco sopra la vita. Tenuta alta e spostata verso ${inn()}, gira attorno al corpo invece di oscillare dritta e il tiro finisce a ${out()}.`,
+     `Avvia la palla dritta verso la mira. Se la spingi verso ${out()}, dietro finisce dietro la schiena e il tiro va a ${out()}.`,
+     "Cammina dritto, un piede davanti all'altro come su una linea. Se i passi girano attorno alla palla, l'oscillazione diventa irregolare.",
+     `Conta anche il tempo tra palla e passi: chi arriva tardi con la palla e non corregge finisce a ${out()}. ${seen}`],
+   TWO()?[]:['avvio','braccio'],['nba4','nbaAp','usbcTm']);
+ }else if(S.prob==='vary'){
+  if(a.vary==='vel')r=tip('Prima la velocità, poi la linea','Se la velocità cambia, cambia anche quanto curva la palla e dove arriva sui birilli. Finché non è costante, spostare i piedi non serve.',
+   TWO()?'Parti sempre dallo stesso punto della pedana, con la palla alla stessa altezza, e fai i passi con lo stesso ritmo: a due mani la velocità della palla viene dal ritmo dei passi. Non cercarla con le braccia. Fai 10 tiri pensando solo a questo.'
+   :'Parti sempre dallo stesso punto della pedana, con la palla alla stessa altezza, e fai i passi con lo stesso ritmo. Lascia scendere il braccio senza spingere. Fai 10 tiri pensando solo a questo.','speed');
+  else if(a.vary==='piedi')r=tip('Prima la partenza, poi la linea','A parità di mira, un listello di differenza alla partenza diventa circa tre listelli sui birilli.',
+   S.own?`Prima di ogni tiro guarda il piede ${foot()}: bordo interno ${ftName(l.start)}. Fai 10 tiri controllandolo ogni volta.`:`Scegli un puntino della pedana come riferimento e metti il bordo interno del piede ${foot()} sempre nello stesso punto. Fai 10 tiri controllandolo ogni volta.`,'feet');
+  else if(a.vary==='arrivo')r={...tip('Prima misura dove arrivi',"Le guide lo chiamano drift (deriva). Arrivare ogni volta 1 o 2 listelli più in là, dalla stessa parte, non è un errore: basta saperlo. Il problema nasce quando l'arrivo cambia da un tiro all'altro.",
+   `Per 10 tiri guarda il listello da cui parti e quello su cui si ferma la scarpa del piede ${foot()}, usando sempre lo stesso punto della scarpa. Resta fermo a fine tiro e guarda in basso. Se ti fermi sempre entro 2 listelli, segna quell'arrivo nella tua linea. Se cambia di più, il problema è nei passi: cammina dritto, un piede davanti all'altro come su una linea.`,'feet'),src:['usbcDr','nbaDr','nba4']};
+  else r=mira();
+ }else{
+  if(a.where==='varia')r=cons('Prima la costanza, poi la linea','Hai detto che la palla finisce ogni volta in un punto diverso. Spostare i piedi non serve finché il tiro non si ripete.');
+  else if(a.aim==='no')r=cons('Prima la mira, poi la linea',`Hai detto che spesso manchi il punto dove miri. Finché la palla non passa di lì, spostare i piedi non serve. Se la manchi sempre dalla stessa parte, nel menù dei problemi c'è "${PROB.aimside.name()}".`);
+  else if(a.aim==='boh')r=cons('Prima controlla la mira','Non sai se la palla passa dove miri. Verificalo prima di spostarti: se la mira è giusta, poi correggiamo la linea.');
+  else if(a.where==='sx1')r={title:"La palla arriva un po' alta: basta poco",why:`Il birillo rimasto dice che il colpo è appena troppo pieno. Sposta i piedi di 1 listello a ${inn()} e tieni la stessa mira.`,df:1,dt:0,xe:18.5,planB:`Se resta alta, un altro listello a ${inn()} con i piedi.`,pb:[1,0]};
+  else if(a.where==='sx2')r={title:"La palla passa dall'altro lato: spostati il doppio",why:`Prende il birillo 1 da ${inn()}. Per questo caso una guida della National Bowling Academy raddoppia lo spostamento: 4 listelli con i piedi e 2 con la mira, verso ${inn()}.${str?' La guida parla di una palla che curva: con un tiro dritto la direzione è la stessa, la misura è una stima.':''}`,df:4,dt:2,xe:22.5,planB:`Se arriva ancora alta, altri 2 listelli a ${inn()} con i piedi e 1 con la mira.`,pb:[2,1]};
+  else if(a.where==='dx')r={title:"La palla arriva leggera: segui l'errore",why:`Finisce a ${out()} della tasca, quindi ti sposti a ${out()}: 2 listelli con i piedi e 1 con la mira.`,df:-2,dt:-1,xe:15.5,planB:'Se resta leggera, ripeti lo stesso spostamento una volta.',pb:[-2,-1]};
+  else r={title:"La palla arriva alta: segui l'errore",why:`Finisce a ${inn()} della tasca, quindi ti sposti a ${inn()}: 2 listelli con i piedi e 1 con la mira.`,df:2,dt:1,xe:19.5,planB:'Se resta alta, ripeti lo stesso spostamento una volta.',pb:[2,1]};
+ }
+ if(!str&&!r.none&&r.df)r.tip=r.df<0?'Altra strada, senza spostarti: guarda un punto più vicino a te, prima delle frecce. La palla tocca la pista prima e comincia a curvare prima.':'Altra strada, senza spostarti: guarda un punto più lontano, oltre le frecce. La palla curva più tardi.';
+ if(S.prob==='change'&&!r.none)r.why="Durante la serata l'olio si consuma e si sposta, quindi la stessa linea smette di funzionare: è normale. "+r.why;
+ r.straight=str;r.before={...l};r.after={start:clamp(l.start+r.df,1,39),arrive:clamp(l.arrive+r.df,1,39),orient:l.orient,target:clamp(l.target+r.dt,1,39)};
+ r.ans=Object.keys(a).filter(k=>RECAP[k]&&RECAP[k][a[k]]).map(k=>RECAP[k][a[k]]());
+ const cb=chkLine(r.before).bad,ca=r.none?null:chkLine(r.after).bad;
+ if(cb){r.block='line';r.badk=cb;}else if(ca){r.block='after';r.badk=ca;}
+ return r;}
+const noObs=()=>({title:'Senza vederlo non ti sposto',why:'Per darti una correzione devo sapere come arriva la palla. Senza questo dato rischierei di mandarti dalla parte sbagliata.',df:0,dt:0,none:true,end:true,xe:17.5,now:'Tieni la stessa linea',
+ planB:'Chiedi a chi gioca con te di guardare al posto tuo per un tiro, poi ripeti le domande.',before:{...cur()},after:{...cur()},ans:[],straight:S.ball==='str'});
+
+const PINX=[20,25.7,14.3,31.3,20,8.7,37,25.7,14.3,3],PINR=[0,1,1,2,2,2,3,3,3,3];
+/* Cosa dicono i birilli rimasti sul tiro da strike. I numeri qui sono quelli di un destro (P li specchia). Letture di esempio:
+   2 in piedi = palla passata dal lato della mano (leggera); 3 in piedi = palla passata dal lato opposto (alta). */
+function readLeave(cs){const k=cs.slice().sort((a,b)=>a-b).join('-'),h=n=>cs.includes(n),str=S.ball==='str';
+ if(k==='10')return str?{c:'tap',t:`Con un tiro dritto il ${P(10)} resta spesso`,x:'Una palla che va dritta entra nei birilli con poco angolo. Non spostarti per questo.'}
+  :{c:'corner',t:`Il ${P(10)} che resta ha due cause diverse`,x:`Dipende da dove va il ${P(6)}, il birillo davanti. Con due domande ti dico cosa cambiare.`};
+ if(k==='8')return{c:'tap',t:'Colpo buono, birillo sfortunato',x:`Il ${P(8)} da solo resta anche dopo un colpo in tasca. Non cambiare nulla.`};
+ if(k==='7')return{c:'seven',t:`Il ${P(7)} da solo non basta per capire`,x:'Ha più cause possibili e spesso è sfortuna. Per un tiro solo non cambiare nulla. Se si ripete, controlla dove colpisce la palla.'};
+ if(str&&(k==='5'||k==='5-7'))return{c:'tap',t:'Con un tiro dritto il 5 resta spesso',x:'Una palla che va dritta devia dopo il birillo 1 e può mancare il 5 anche con un buon colpo. Non spostarti per questo.'};
+ if(k==='4'||k==='4-7')return{c:'alta',w:'sx1',t:"La palla è arrivata un po' alta",x:`Il ${P(4)} resta di solito dopo un colpo in tasca appena troppo pieno sul birillo 1.`};
+ if(k==='9'||k==='4-9')return{c:'alta',w:'sx1',t:"La palla è arrivata un po' alta",x:`Il ${P(9)} resta di solito quando la palla entra in tasca un po' troppo piena.`};
+ if(['4-6','4-6-7','4-6-10','4-6-7-10','6-7-10','4-7-10','4-6-7-9-10','4-6-7-8-10'].includes(k))return{c:'alta',w:'sx',t:'La palla è arrivata alta',x:`Questo ${gw('split','split')} arriva quasi sempre da un colpo troppo pieno sul birillo 1, a ${inn()} della tasca.`};
+ if(k==='5'||k==='5-7')return{c:'leggera',w:'dx',t:'La palla è arrivata leggera',x:`Il 5 resta quando la palla devia troppo dopo il birillo 1: di solito è arrivata a ${out()} della tasca.`};
+ if(h(2)&&!h(3))return{c:'leggera',w:'dx',t:h(1)?`La palla è passata a ${out()} del birillo 1`:'La palla è arrivata leggera',
+  x:h(1)?`Il birillo 1 è rimasto in piedi insieme al ${P(2)}: la palla è finita a ${out()} della tasca.`:`Il ${P(2)} resta in piedi quando la palla prende il birillo 1 troppo di lato, a ${out()} della tasca.`};
+ if(h(3)&&!h(2))return{c:'alta',w:'sx',t:h(1)?`La palla è passata a ${inn()} del birillo 1`:'La palla è arrivata alta',
+  x:h(1)?`Il birillo 1 è rimasto in piedi insieme al ${P(3)}: la palla è finita a ${inn()} della tasca.`:`Il ${P(3)} resta in piedi quando la palla passa a ${inn()} della tasca, troppo piena sul birillo 1.`};
+ return{c:''};}
+const RDN={leggera:'palla leggera',alta:'palla alta'};
+/* Quante volte stasera, dall'ultima correzione del tiro, i birilli hanno detto la stessa cosa (compresa questa). */
+const rdCount=c=>{let n=1;for(const e of S.diary){if(e.ex)continue;if(!e.sp||e.d!==DAY)break;if(e.rd===c)n++;}return n;};
+/* ---- più birilli e split: dove deve passare la palla (numeri di un destro) ----
+   Fonti: USBC "A Spare-Shooting Clinic" (4-7: a metà fra le due posizioni; 2-4-5 e 2-8: il birillo chiave), USBC "Making Hard Spares"
+   (3-10: il punto del 6 che manca; 6-7-10: mira al 10 sfiorando il 6, da metà pedana; 1-2-4-10: mira al 2 per mandare l'1 sul 10),
+   bowlingball.com e Holmen HS (7-10, 4-6, 8-10, 7-9: non si chiudono, si prende un lato). Il resto è geometria: la palla tocca un birillo
+   se passa a meno di 6 listelli dal suo centro, e un birillo colpito di lato parte dalla parte opposta. */
+function planLeave(cs){const px=p=>PINX[p-1],row=p=>PINR[p-1],near=(a,b)=>Math.abs(a-b)<.6;
+ const r0=Math.min(...cs.map(row)),fr=cs.filter(p=>row(p)===r0).sort((a,b)=>px(a)-px(b));
+ let gap=0,gi=0;for(let i=1;i<fr.length;i++)if(px(fr[i])-px(fr[i-1])>gap){gap=px(fr[i])-px(fr[i-1]);gi=i;}
+ if(gap>11.5){const mid=(px(fr[gi])+px(fr[gi-1]))/2,A=cs.filter(p=>px(p)<mid),B=cs.filter(p=>px(p)>mid),take=A.length>B.length?A:B;return{...planLeave(take),imp:true,take};}
+ let K=fr.slice().sort((a,b)=>Math.abs(px(a)-20)-Math.abs(px(b)-20)||a-b)[0],N=null,T=null,xb,kind;
+ if(fr.length===2){K=fr[0];N=fr[1];xb=(px(K)+px(N))/2;kind='between';}
+ else{const nb=fr.length>1?[]:cs.filter(p=>row(p)===r0+1&&near(Math.abs(px(p)-px(K)),5.67));
+  if(nb.length===1){N=nb[0];xb=(px(K)+px(N))/2;kind='pair';}else{xb=px(K);kind='full';}}
+ const cover=x=>{const cov=new Set(),q=[];cs.forEach(p=>{const d=x-px(p);if(Math.abs(d)<=6){cov.add(p);q.push([p,Math.abs(d)<1?0:d>0?-1:1]);}});
+  while(q.length){const[p,sd]=q.shift();cs.forEach(t=>{if(cov.has(t))return;if(sd===0?row(t)===row(p)+2&&near(px(t),px(p)):row(t)===row(p)+1&&near(px(t),px(p)+sd*5.67)){cov.add(t);q.push([t,sd]);}});}
+  return cs.filter(p=>!cov.has(p));};
+ let rest=cover(xb);
+ if(rest.length){T=rest.slice().sort((a,b)=>Math.abs(px(a)-px(K))-Math.abs(px(b)-px(K)))[0];
+  if(kind==='full'&&Math.abs(px(T)-px(K))<=11.5&&row(T)>row(K)){N=T;T=null;xb=(px(K)+px(N))/2;kind='between';}
+  else{xb=clamp(px(K)-Math.sign(px(T)-px(K))*5.5,1.5,38.5);kind='slide';}
+  rest=cover(xb);}
+ return{kind,K,N,T,xb,rest,D:60+.866*row(K),row:row(K)};}
+const art=n=>n===1||n===8?`l'${n}`:`il ${n}`;
+function solveSpare(){const l=cur(),cs=S.sp.map(P),pln=planLeave(cs),k=pln.K,grp=pln.imp?pln.take:cs,one=grp.length===1||(pln.kind==='full'&&grp.every(p=>Math.abs(PINX[p-1]-pln.xb)<.1)),solo=one&&!pln.imp;
+ const key=cs.slice().sort((a,b)=>a-b).join('-'),nm=S.sp.slice().sort((a,b)=>a-b).join('-'),xk=pln.xb,pk=P(k),base={spare:true,key,pk,pins:cs,before:{...l},rd:readLeave(cs),plan:pln};
+ const ms=(xk-20)/5.67,am=Math.abs(ms),D=pln.D,n=Math.round(3*am),hook=S.ball==='hook',str=!(hook&&am<=.75),dirF=ms>0?out():inn(),sv=S.spl[S.hand+key];
+ const two=(a,b)=>[P(a),P(b)].sort((x,y)=>x-y),pr=pln.N?two(k,pln.N):null,pT=pln.T?P(pln.T):null,tk=pln.imp?pln.take.map(P).sort((a,b)=>a-b):null;
+ /* cosa deve fare la palla, a parole */
+ let what='',head='';const tkn=tk?art(tk[0])+(tk.length>1?'-'+tk.slice(1).join('-'):''):'';
+ if(!one){
+  if(pln.kind==='pair'){what=`Mettiti a metà fra la posizione del birillo ${pr[0]} e quella del ${pr[1]}: la palla li tocca tutti e due.${grp.length>2?' Gli altri cadono spinti da questi.':''}`;head=`fra ${art(pr[0])} e ${art(pr[1])}`;}
+  else if(pln.kind==='between'){const mp=[1,2,3,4,5,6,7,8,9,10].find(p=>Math.abs(PINX[p-1]-xk)<.6&&PINR[p-1]>pln.row&&!cs.includes(p));
+   what=`La palla è più larga dello spazio fra ${art(pr[0])} e ${art(pr[1])}: se passa nel mezzo li tocca tutti e due.${mp?` Mira al punto dove stava ${art(P(mp))}.`:''}`;head=`fra ${art(pr[0])} e ${art(pr[1])}`;}
+  else if(pln.kind==='slide'){what=`È un tiro difficile. La palla deve sfiorare ${art(pk)} sul lato ${PINX[pln.T-1]>PINX[k-1]?out():inn()}, così scivola verso ${art(pT)}. Se sbagli di poco verso l'esterno non tocchi niente: decidi tu se rischiare.`;head=`sfiora ${art(pk)}`;}
+  else{what=`Il birillo chiave è ${art(pk)}, quello più avanti: colpiscilo in pieno, come se fosse da solo. La palla e il birillo ${pk} portano via gli altri. Serve più precisione che per un birillo solo.`;head=`${art(pk)} in pieno`;}}
+ if(pln.imp){what=`Questo split si chiude solo con un rimbalzo fortunato. Meglio prendere ${tkn} che rischiare di non toccare niente.${what?' '+what:''}`;head=`prendi ${tkn}`;}
+ if(head)head=(pln.imp||pln.kind==='slide'||(pln.kind==='between'&&grp.length===2)?'Split ':'Spare ')+nm+': '+head;
+ let start,orient=l.orient,arrive,tg=l.target,title,why,saved=false,alt=null;
+ if(str){
+  if(sv){({start,orient,arrive,target:tg}=sv);saved=true;}
+  else{const mid=pln.kind==='slide'&&xk<8; /* USBC: il 6-7-10 si tira da metà pedana, non dal lato opposto */
+   start=mid?20:Math.round(ms<-.75?35-3*(3+ms):ms>.75?15+3*(3-ms):S.line.start);orient=!mid&&am>=2?(ms>0?1:-1):0;arrive=clamp(start+orient*3,1,39);
+   const x0=clamp(arrive-S.lay,.5,39.5);tg=clamp(Math.round(x0+(xk-x0)*13.7/D),1,39);}
+  const cross=am>=2&&!saved&&start!==20;
+  title=saved?`${solo?'Birillo '+pk:'Spare '+nm}: la tua linea salvata`:solo?(am>=2?`Birillo ${pk}: tiro incrociato e dritto`:`Birillo ${pk}: tiro dritto`):head;
+  why=(saved?"L'ultima volta l'hai chiuso così. ":'')+(what?what+' ':'')+(cross?`Parti dal lato opposto della pedana, verso ${ms<0?inn():out()}, e tira dritto in ${gw('incrociato','diagonale')}, senza far curvare la palla.`:'Tira dritto, senza far curvare la palla.')+(solo?' La mira è sulla retta che porta al birillo.':'')+(orient?' Piedi e spalle puntano al birillo.':'');
+  /* Per chi fa curvare la palla resta, come alternativa, il sistema 3-6-9 dalla linea da strike: solo se nel modello arriva al birillo. */
+  if(hook&&ms>.75&&pln.kind!=='slide'){const s2=l.start-n,a2={start:s2,arrive:clamp(s2+l.arrive-l.start,1,39),orient:l.orient,target:l.target};if(s2>=8&&s2<=35&&!mkShot(a2,xk,false,false,D).bad)alt={n,dirF};}}
+ else{const sh=one||pln.kind==='full'?0:Math.round(3*(xk-17.5)/5.67);start=l.start-sh;if(start<8||start>35)return{...base,limit:true,n:Math.abs(sh),dirF:sh>0?out():inn()};arrive=clamp(start+l.arrive-l.start,1,39);
+  title=solo?`Birillo ${pk}: la tua linea da strike`:head;
+  why=(what?what+' ':'')+(solo?`${cap(art(pk))} è al centro: non spostarti e tira come per lo strike.`:sh?`Usa il tiro da strike: stessa mira e piedi ${pl(Math.abs(sh))} a ${sh>0?out():inn()}.`:'Usa il tiro da strike, senza spostarti.')+(TWO()&&sh?' A due mani questo spostamento è meno affidabile, perché la palla curva di più: se manchi il birillo, prova un tiro più dritto.':'');}
+ const after={start,arrive,orient,target:tg};
+ if(mkShot(after,xk,str,false,D).bad)return{...base,limit:true,n,dirF};
+ return{...base,title,why,straight:str,abs:str,saved,alt,sys:false,xk,D,Dv:60+3.68*pln.row,after};}
+
+/* ---- disegni ---- */
+const sole=(cx,cy,w,h,left,cls)=>{const m=left?1:-1,p=(x,y)=>`${(cx+m*x*w).toFixed(1)} ${(cy+y*h).toFixed(1)}`;return `<path class="${cls}" d="M${p(.08,-.5)}C${p(.36,-.5)} ${p(.5,-.32)} ${p(.48,-.14)}C${p(.46,.02)} ${p(.3,.04)} ${p(.28,.2)}L${p(-.36,.2)}C${p(-.4,.1)} ${p(-.5,0)} ${p(-.5,-.16)}C${p(-.5,-.38)} ${p(-.26,-.5)} ${p(.08,-.5)}zM${p(-.33,.28)}L${p(.27,.28)}C${p(.29,.42)} ${p(.17,.5)} ${p(-.03,.5)}C${p(-.23,.5)} ${p(-.35,.42)} ${p(-.33,.28)}z"/>`;};
+function ymap(anc){return d=>{for(let i=0;i<anc.length-1;i++){const[a,ya]=anc[i],[b,yb]=anc[i+1];if(d<=a&&d>=b)return ya+(a-d)/(a-b)*(yb-ya);}return d>anc[0][0]?anc[0][1]:anc[anc.length-1][1];};}
+function shot(x0,tg,xe,D=60){const s=(tg-x0)/13.7,d0=38,h=D-d0,xb=x0+s*d0;let k=(xe-xb-s*h)/(h*h),bad=null;
+ if(xb<.5||xb>39.5){bad='gut';k=0;}else if(k<0){bad='rev';k=0;}
+ const f=d=>d<=d0?x0+s*d:xb+s*(d-d0)+k*(d-d0)**2,dm=k>1e-4&&s<0?Math.min(58,d0-s/(2*k)):d0;
+ return{f,dm:bad?null:dm,xe:clamp(f(D),.3,38.7),bad,bp:bad?null:{d:dm,x:f(dm)},D};}
+function mkShot(line,xe,straight,through,D=60){const x0=clamp(line.arrive-S.lay,.5,39.5);
+ if(straight){const f=through?(d=>x0+(line.target-x0)/13.7*d):(d=>x0+(xe-x0)*d/D),e=f(D);return{f,dm:null,xe:clamp(e,.3,38.7),bad:through&&(e<.5||e>39.5)?'gut':null,bp:null,D};}
+ return shot(x0,line.target,xe,D);}
+const chkLine=l=>mkShot(l,17.5,S.ball==='str',true);
+const fixLine=l=>{for(let d=1;d<=20;d++)for(const s of[-1,1]){const t=l.target+s*d;if(t>=1&&t<=39&&!chkLine({...l,target:t}).bad)return t;}return null;};
+const ZH=404;
+function lane(o){const z=o.zoom,bw=z?9:6,maxB=39,W=z?359:280,Rr=z?355:257,L=Rr-maxB*bw,H=z?ZH:410,fs=z?12:10;
+ const anc=z?[[19,4],[-15,ZH-14]]:[[71.04,28],[60,70],[40,146],[15,256],[7,290],[0,316],[-15,396]];
+ const Y=ymap(anc),X=b=>RH()?Rr-(b-.5)*bw:L+(b-.5)*bw,CX=b=>X(clamp(b,.3,38.7));
+ const dTop=anc[0][0],yF=Y(0),yTop=z?Y(dTop):Y(60)-62,yBot=Y(-15);let s='';
+ s+=`<rect class="lb" x="${L}" y="${yTop}" width="${Rr-L}" height="${yF-yTop}"/><rect class="la" x="${L}" y="${yF}" width="${Rr-L}" height="${H-yF}"/>`;
+ const yO=Y(Math.min(38,dTop));s+=`<rect class="lo" x="${L}" y="${yO}" width="${Rr-L}" height="${yF-yO}"/>`;
+ for(let b=1;b<=maxB;b++){const x=X(b)-bw/2;if(b%5===0)s+=`<rect class="l5" x="${x}" y="${yTop}" width="${bw}" height="${yBot-yTop}"/>`;s+=`<line class="ll" x1="${x}" y1="${yTop}" x2="${x}" y2="${yBot}"/>`;}
+ const nums=y=>{for(let b=5;b<=35;b+=5)s+=`<text class="ltb" x="${X(b)}" y="${y}" text-anchor="middle" font-size="${fs}">${b}</text>`;};
+ nums(H-3);if(z)nums(yTop+14);
+ s+=`<line class="lf" x1="${L}" y1="${yF}" x2="${Rr}" y2="${yF}"/>`;
+ const aw=Math.max(3,bw*.42),ah=Math.max(5.5,bw*.8);
+ for(let b=5;b<=35;b+=5){const x=X(b),y=Y(16-Math.abs(20-b)/5*1.17);s+=`<path class="lm" d="M${x} ${y-ah}L${x+aw} ${y+ah}L${x-aw} ${y+ah}z"/>`;}
+ const r=Math.max(1.4,bw*.17);
+ [3,5,8,11,14,26,29,32,35,37].forEach(b=>s+=`<circle class="lm" cx="${X(b)}" cy="${Y(7)}" r="${r}"/>`);
+ for(let b=5;b<=35;b+=5)s+=`<circle class="lm" cx="${X(b)}" cy="${Y(-13.2)}" r="${b===20?r*1.5:r}"/>`;
+ if(!z){[[20,0],[25.7,1],[14.3,1],[31.3,2],[20,2],[8.7,2],[37,3],[25.7,3],[14.3,3],[3,3]].forEach((p,i)=>{const up=!o.pins||o.pins.includes(i+1);s+=`<circle class="${up?'lp':'lpx'}" cx="${X(p[0])}" cy="${Y(60)-9-p[1]*14}" r="${up?5.5:1.6}"/>`;});
+  s+=`<text class="lt" x="${RH()?L+5:Rr-5}" y="${Y(38)-5}" text-anchor="${RH()?'start':'end'}" font-size="${fs}">fine olio (stima)</text><text class="lt" x="${RH()?L+5:Rr-5}" y="${yF-6}" text-anchor="${RH()?'start':'end'}" font-size="${fs}">linea di fallo</text>`;}
+ const dEnd=z?dTop-1.7:60;
+ const poly=(sh,cls,w)=>{let p='';const de=z?dEnd:(sh.D||60),pt=d=>`${CX(sh.f(d)).toFixed(1)},${Y(d).toFixed(1)} `;for(let d=1;d<de;d+=.5)p+=pt(d);p+=pt(de);return `<polyline class="${cls}" stroke-width="${w}" points="${p}"/>`;};
+ const fw=z?26:16,fh=z?62:38,gap=4.2,ang=l=>l.orient===0?0:((l.orient<0)===RH()?16:-16);
+ const shoe=(b,d,cls,a,k,cls2)=>{const kk=k||1,hw=fw/bw/2*kk,xr=X(b),cy=Y(d),w=fw*kk,h=fh*kk;return `<g transform="rotate(${a} ${xr} ${cy})">${cls2?sole(X(clamp(b+hw-gap,1.4,38.6)),cy,w,h,!RH(),cls2):''}${sole(X(b+hw),cy,w,h,RH(),cls)}${cls==='sN'?`<circle class="sR" cx="${xr}" cy="${cy}" r="${z?2.4:1.7}"/>`:''}</g>`;};
+ const rb=z?5:3.2;
+ if(o.A){const{line:l,shot:sh}=o.A;s+=poly(sh,'pA',1.4)+shoe(l.start,-10.6,'sO',ang(l));}
+ {const{line:l,shot:sh}=o.N;s+=poly(sh,'pN',z?3.4:3.2);
+  if(l.arrive!==l.start||l.orient!==0)s+=`<line class="wk" x1="${X(l.start)}" y1="${Y(-10.6)}" x2="${X(l.arrive)}" y2="${Y(z?-3.2:-4.4)}"/>`+shoe(l.arrive,z?-3.2:-4.4,'sN2',ang(l),z?.7:.55);
+  s+=shoe(l.start,-10.6,'sN',ang(l),1,'sN3')+`<circle class="mN" cx="${CX(sh.f(1))}" cy="${Y(1)}" r="${rb}"/><circle class="mN" cx="${sh.tm?CX(sh.f(13.7)):X(l.target)}" cy="${Y(13.7)}" r="${z?5:3.6}"/>`;
+  if(z&&o.dim){const xa=X(l.arrive),xl=CX(sh.f(0)),yb=Y(2.6);s+=`<path class="dim" d="M${xa} ${Y(-2)}V${yb}H${xl}V${Y(1)}"/><text class="dimt" x="${clamp((xa+xl)/2,L+30,Rr-30)}" y="${yb-5}" text-anchor="middle" font-size="12">${S.lay} listelli</text>`;}
+  if(!z&&o.adv&&sh.bp){const obs=S.bpo!=null,xm=CX(obs?S.bpo:sh.bp.x),ym=Y(sh.bp.d),left=(xm-L)>(Rr-xm),xt=left?xm-2*bw-5:xm+2*bw+5,an=left?'end':'start';
+   s+=`<rect class="bz ${obs?'':'e'}" x="${xm-2*bw}" y="${ym-13}" width="${4*bw}" height="26" rx="6"/><text class="ta" x="${xt}" y="${ym-1}" text-anchor="${an}" font-size="${fs}">break point</text><text class="ta" x="${xt}" y="${ym+11}" text-anchor="${an}" font-size="${fs}">${obs?'(vista da te)':'(stima)'}</text>`;}
+  if(!z)s+=`<circle class="mN" cx="${CX(sh.xe)}" cy="${Y(sh.D||60)}" r="4.6"/>`;}
+ return `<svg viewBox="0 0 ${W} ${H}" ${z?'data-lane="1"':''} role="img" aria-label="${z?'Pedana e frecce con i listelli numerati ogni cinque':'Pista vista dall\'alto con il percorso della palla'}">${s}</svg>`;}
+/* Piedi: una finestra della pedana con la scarpa di prima (contorno), quella di adesso (piena) e la freccia dello spostamento. */
+/* Angolo della scarpa nei disegni: 16 gradi verso destra o verso sinistra, come nel disegno della pista. */
+const oAng=l=>!l||l.orient===0?0:((l.orient<0)===RH()?16:-16);
+function moveFig(from,to,nm,ao,an){const rot=(a,bx,t)=>a?`<g transform="rotate(${a} ${x(bx+2).toFixed(1)} ${cy})">${t}</g>`:t;const rh=RH(),W=320,H=nm?192:160,f0=from==null?to:from,lo=Math.min(f0,to),hi=Math.max(f0,to)+4,n=Math.max(20,hi-lo+8);
+ const b0=clamp(Math.round((lo+hi)/2-n/2),-1,40-n),bw=W/n,x=b=>rh?W-(b-b0-.5)*bw:(b-b0-.5)*bw,cy=96,sh=108,sw=4*bw,d=to-f0;
+ let g=`<rect class="la" x="0" y="0" width="${W}" height="${H}"/>`;
+ for(let b=b0+1;b<=b0+n;b++){const xx=x(b)-bw/2;if(b<1||b>39){g+=`<rect class="gt" x="${xx}" y="0" width="${bw}" height="${H}"/>`;continue;}
+  if(nm&&b%5===0)g+=`<rect class="l5" x="${xx}" y="0" width="${bw}" height="${H}"/>`;g+=`<line class="ll" x1="${xx}" y1="0" x2="${xx}" y2="${H}"/>`;}
+ if(d!==0){const a=Math.min(f0,to),c=Math.max(f0,to);for(let b=a;b<c;b++)g+=`<rect class="tick" x="${Math.min(x(b),x(b+1))+1.5}" y="29" width="${bw-3}" height="7" rx="2"/>`;
+  const x1=x(f0),x2=x(to),sg=x2>x1?1:-1;g+=`<line class="mvl" x1="${x1}" y1="21" x2="${x2-sg*9}" y2="21"/><path class="mvh" d="M${x2} 21L${x2-sg*11} 14L${x2-sg*11} 28z"/><text class="dimt" x="${clamp((x1+x2)/2,44,W-44)}" y="12" text-anchor="middle" font-size="13">${pl(Math.abs(d))}</text>`;
+  g+=rot(ao,f0,sole(x(f0+2),cy,sw,sh,rh,'sO'));}
+ g+=rot(an,to,sole(x(to+2),cy,sw,sh,rh,'sN')+`<line class="ie" x1="${x(to)}" y1="${cy-sh*.34}" x2="${x(to)}" y2="${cy+sh*.14}"/>`);
+ if(nm)for(let a=5;a<=35;a+=5)if(a>b0&&a<=b0+n)g+=`<circle class="lm" cx="${x(a)}" cy="166" r="${a===20?5:3.2}"/><text class="ltb" x="${x(a)}" y="186" text-anchor="middle" font-size="12">${a}</text>`;
+ return `<svg viewBox="0 0 ${W} ${H}" data-fig="piedi" role="img" aria-label="${d?`Piede ${foot()}: spostalo di ${mvTxt(d)}`:`Posizione del piede ${foot()} sulla pedana`}${an?`, girato verso ${an>0?'destra':'sinistra'}`:''}">${g}</svg>`;}
+/* Mira: le sette frecce numerate dal lato della mano, con il punto dove mirare. */
+function aimFig(t,prev){const rh=RH(),W=320,H=92,bw=W/40,x=b=>rh?W-(b+.5)*bw:(b+.5)*bw,yv=b=>24+Math.abs(20-b)/5*6;
+ let g=`<rect class="lb" x="0" y="0" width="${W}" height="${H}"/>`;
+ for(let a=5;a<=35;a+=5){const xx=x(a),y=yv(a),on=a===t;g+=`<path class="${on?'mN':'lm'}" d="M${xx} ${y-9}L${xx+7} ${y+9}L${xx-7} ${y+9}z"/><text class="${on?'ta':'lt'}" x="${xx}" y="${y+27}" text-anchor="middle" font-size="12">${a/5}ª</text>`;}
+ if(prev!=null&&prev!==t)g+=`<circle class="mA" cx="${x(prev)}" cy="${yv(prev)+1}" r="5"/>`;
+ g+=t%5===0?`<circle class="ring" cx="${x(t)}" cy="${yv(t)+1}" r="13"/>`:`<circle class="mN" cx="${x(t)}" cy="${yv(t)+1}" r="5.5"/>`;
+ return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Le sette frecce della pista. Mira: ${tgName(t)}">${g}</svg>`;}
+
+/* ---- schermate ---- */
+const orientTxt=l=>l.orient===0?'dritto':('verso '+(l.orient<0?out():inn()));
+const badTxt=b=>b==='gut'?(S.ball==='str'?'Con questi numeri la palla finisce nel canale prima dei birilli.':'Con questi numeri la palla finisce nel canale prima di curvare.'):`Con questi numeri la palla va a ${inn()} della tasca già in linea retta, e una palla che curva verso il centro la porta ancora più a ${inn()}.`;
+const advRow=()=>`<div class="advr"><button class="lnk" data-act="adv">${S.adv?'Nascondi':'Mostra'} il break point</button><span class="tag2">Funzione avanzata</span></div>`;
+const orBoxOf=af=>`<div style="margin-top:14px;display:flex;flex-direction:column;gap:6px"><div class="t">${gw('orient','Orientamento di piedi e spalle')}</div>${orSw('sor',af)}<div class="mu">${af.orient===0?'Se ruoti i piedi la linea della palla resta questa: si sposta solo la partenza.':`Parti dal listello ${af.start} e cammini ${orientTxt(af)} fino al ${af.arrive}. La linea della palla non cambia.`}</div></div>`;
+const orCur=l=>l.orient===0?'dr':((RH()?1:-1)===l.orient?'sx':'dx');
+const orSw=(act,l)=>`<div class="sw" role="group" aria-label="Orientamento">${[['sx','A sinistra'],['dr','Dritto'],['dx','A destra']].map(([v,t])=>`<button data-act="${act}" data-v="${v}" aria-pressed="${orCur(l)===v}">${t}</button>`).join('')}</div>`;
+const sw2=(act,lab,cur,opts)=>`<div class="sw" role="group" aria-label="${lab}">${opts.map(([v,t])=>`<button data-act="${act}" data-v="${v}" aria-pressed="${cur===v}">${t}</button>`).join('')}</div>`;
+const lineCard=l=>`<div class="nums"><div><span>Piedi alla partenza</span><b>${l.start}</b><small>${cap(ftName(l.start))}</small></div><div><span>Mira</span><b>${l.target}</b><small>${cap(tgName(l.target))}</small></div>${l.orient!==0?`<div><span>Arrivo</span><b>${l.arrive}</b><small>Piedi ${orientTxt(l)}</small></div>`:''}</div>`;
+/* ---- icone: piccoli disegni 44x44 su una piastrella, sempre accanto a un testo. mx specchia per i mancini. ---- */
+const ic=g=>`<svg class="ic" viewBox="0 0 44 44" aria-hidden="true"><rect class="ib" width="44" height="44" rx="12"/>${g}</svg>`;
+const mx=x=>RH()?x:44-x;
+const DK=[[0,0],[-1,1],[1,1],[-2,2],[0,2],[2,2],[-3,3],[-1,3],[1,3],[3,3]];
+const deckG=on=>DK.map(([hx,r],i)=>{const u=on.includes(i+1);return `<circle class="${u?'if':'ig'}" cx="${22+hx*4.6}" cy="${33.5-r*7.6}" r="${u?3.4:2.4}"/>`;}).join('');
+const HITX={tasca:27.5,leggera:33.5,alta:22.5};
+const hitG=x=>`<circle class="ip" cx="22" cy="18" r="4.2"/><circle class="ip" cx="13" cy="8.5" r="4.2"/><circle class="ip" cx="31" cy="8.5" r="4.2"/><circle class="if" cx="${mx(x)}" cy="31.5" r="7.6"/>`;
+const ah=(x,y,a)=>`<path class="if" d="M0 -5L4.2 3L-4.2 3z" transform="translate(${x} ${y}) rotate(${a})"/>`;
+const ballG=(x,y,r,c)=>c?`<circle class="${c}" cx="${x}" cy="${y}" r="${r}"/>`:`<circle class="if" cx="${x}" cy="${y}" r="${r}"/><circle class="ih" cx="${x-r*.3}" cy="${y-r*.3}" r="${r*.15}"/><circle class="ih" cx="${x+r*.12}" cy="${y-r*.45}" r="${r*.15}"/><circle class="ih" cx="${x+r*.08}" cy="${y+r*.02}" r="${r*.17}"/>`;
+const I={
+ spare:()=>ic(deckG([P(6),P(10)])),
+ strike:()=>ic(`<circle class="ip" cx="22" cy="12" r="3.4"/><circle class="ip" cx="15" cy="6.5" r="3.4"/><circle class="ip" cx="29" cy="6.5" r="3.4"/><path class="is" d="M${mx(27)} 38C${mx(33)} 30 ${mx(33)} 24 ${mx(27)} 20"/>${ah(mx(26),19.2,RH()?-52:52)}`),
+ line:()=>ic(`<rect class="is2" x="13" y="6" width="18" height="32" rx="2"/><path class="is" d="M${mx(26)} 32L${mx(19)} 16"/><path class="if" d="M${mx(19)} 9.5l3.8 6.4h-7.6z"/><circle class="if" cx="${mx(26)}" cy="32" r="2.8"/>`),
+ diary:()=>ic('<rect class="is" x="12" y="8" width="20" height="28" rx="3"/><path class="is2" d="M17 16h10M17 22h10M17 28h6"/>'),
+ prof:()=>ic('<circle class="is" cx="22" cy="15.5" r="5.5"/><path class="is" d="M11 36c0-7 5-10.5 11-10.5S33 29 33 36"/>'),
+ hand2:h=>{const d=h==='R'?1:-1;return ic(`<circle class="is2" cx="22" cy="9.5" r="4"/><path class="is2" d="M22 14v12M22 26l-5 11M22 26l5 11"/><path class="is" d="M22 17l${d*8} 7M22 21l${d*6} 5"/>${ballG(22+d*10.5,27.5,5)}`);},
+ hand:h=>{const d=h==='R'?1:-1;return ic(`<circle class="is2" cx="22" cy="9.5" r="4"/><path class="is2" d="M22 14v12M22 26l-5 11M22 26l5 11M22 17l${-d*6} 6"/><path class="is" d="M22 17l${d*8} 7"/>${ballG(22+d*10.5,27.5,5)}`);},
+ hook:()=>ic(`<path class="is" d="M${mx(27)} 38C${mx(32)} 27 ${mx(31)} 17 ${mx(18.5)} 10"/>${ah(mx(17.3),9.3,RH()?-61:61)}`),
+ str:()=>ic(`<path class="is" d="M22 38V12"/>${ah(22,10.5,0)}`),
+ qm:()=>ic('<text class="iq" x="22" y="30.5" text-anchor="middle">?</text>'),
+ ball2:()=>ic(ballG(16,25,9)+ballG(32,16,6.5,'is')),
+ ball1:()=>ic(ballG(22,22,11)),
+ feet:a=>ic(`<g transform="rotate(${a} 22 22)">${sole(15,22,12,32,true,'sN')}${sole(29,22,12,32,false,'sN')}</g>`),
+ corner:()=>ic(deckG([P(10)])),
+ miss:()=>ic(hitG(37)),
+ clock:()=>ic('<circle class="is" cx="22" cy="22" r="12"/><path class="is" d="M22 14.5V22l5 3.5"/>'),
+ vary:()=>ic('<path class="ig" d="M22 15l5.5 10h-11z"/><circle class="if" cx="12" cy="13" r="3.2"/><circle class="if" cx="32" cy="19" r="3.2"/><circle class="if" cx="19" cy="33" r="3.2"/>'),
+ split:()=>ic(deckG([7,10])),
+ hit:k=>ic(hitG(HITX[k])),
+ six:k=>{const d=RH()?1:-1;return ic(`<path class="is2" d="M${mx(39.5)} 5V39"/><circle class="if" cx="${mx(29)}" cy="12" r="4"/><circle class="ip" cx="${mx(20)}" cy="23" r="4"/>`+
+  (k==='debole'?`<path class="is" d="M${mx(25)} 25.5L${mx(32)} 30"/>${ah(mx(34),31.2,d*122)}`:`<path class="is" d="M${mx(20)} 18V8"/>${ah(mx(20),5.5,0)}`));},
+ aim:k=>ic('<path class="ig" d="M22 11l7.5 13h-15z"/>'+(k==='si'?'<path class="is" d="M22 38V27"/><circle class="if" cx="22" cy="20" r="4.2"/>':'<path class="is" d="M33 38V34"/><circle class="if" cx="33" cy="27" r="4.2"/>')),
+ speed:()=>ic(ballG(28,22,9)+'<path class="is2" d="M7 16h8M5 22h9M7 28h8"/>'),
+ score:()=>ic('<rect class="is2" x="6" y="12" width="32" height="20" rx="3"/><path class="is2" d="M16.7 12v20M27.3 12v20"/><path class="is" d="M9 18l5 8M14 18l-5 8M24.5 18l-5 8"/><circle class="if" cx="32.5" cy="22" r="2.2"/>'),
+ bal:()=>ic('<circle class="if" cx="22" cy="8.5" r="3.6"/><path class="is" d="M22 14v11M12 19h20M22 25l-7 11.5M22 25l7 11.5"/><path class="is2" d="M8 39h28"/>'),
+ side:k=>{const x=mx(k==='out'?33:11);return ic(`<path class="ig" d="M22 11l7.5 13h-15z"/><path class="is" d="M${x} 38V34"/><circle class="if" cx="${x}" cy="27" r="4.2"/>`);},
+ drill:()=>ic('<circle class="is2" cx="22" cy="22" r="13"/><circle class="is" cx="22" cy="22" r="7"/><circle class="if" cx="22" cy="22" r="2.4"/>')
+};
+const TIPI={speed:()=>I.speed(),feet:()=>I.feet(oAng(cur())),aim:()=>I.aim('si')};
+const QI=(id,v)=>v==='boh'?I.qm():id==='six'?I.six(v):id==='hit'?(v==='varia'?I.vary():I.hit(v)):id==='where'?(v==='varia'?I.vary():I.hit(v==='dx'?'leggera':'alta')):id==='aim'?I.aim(v):id==='side'?(v==='varia'?I.vary():I.side(v)):id==='vary'?(v==='mira'?I.aim('no'):v==='vel'?I.speed():I.feet(0)):'';
+const GI={
+ listello:()=>ic('<path class="is2" d="M11 7v30M16.5 7v30M27.5 7v30M33 7v30"/><rect class="if" x="19.5" y="7" width="5" height="30" rx="1.5"/>'),
+ frecce:()=>ic([8,15,22,29,36].map(x=>`<path class="${x===mx(29)?'if':'ig'}" d="M${x} ${14+Math.abs(22-x)/7*4}l3.2 6.4h-6.4z"/>`).join('')),
+ puntini:()=>ic([8,15,22,29,36].map(x=>`<circle class="${x===22?'if':'ig'}" cx="${x}" cy="22" r="${x===22?3.4:2.4}"/>`).join('')),
+ tasca:()=>I.hit('tasca'),
+ curva:()=>ic(`<rect class="ig" x="${mx(28.5)-7}" y="14.5" width="14" height="9" rx="3"/><path class="is" d="M${mx(27)} 38C${mx(32)} 27 ${mx(31)} 17 ${mx(18.5)} 10"/>${ah(mx(17.3),9.3,RH()?-61:61)}`),
+ hook:()=>I.hook(),
+ incrociato:()=>ic(`<path class="is" d="M${mx(34)} 37L${mx(13)} 12"/>${ah(mx(11.7),10.4,RH()?-40:40)}`),
+ spareball:()=>I.ball1(),
+ piedepalla:()=>ic(sole(mx(30),22,12,32,RH(),'sN')+`<circle class="if" cx="${mx(10.5)}" cy="20" r="5"/><path class="is2" d="M${mx(17)} 20H${mx(23)}"/>`),
+ orient:()=>I.feet(16),
+ scarpa:()=>ic(sole(22,25,13,30,true,'sN')+'<path class="is2" d="M15 7h14M15 4.5v5M29 4.5v5"/>'),
+ tresei:()=>ic('<text class="iq" x="22" y="27" text-anchor="middle" style="font-size:13px">3·6·9</text>'),
+ split:()=>I.split(),
+ linee:()=>I.line(),
+ frame:()=>I.score(),
+ punteggio:()=>I.score()
+};
+const gico=k=>GI[k]?GI[k]():'';
+const hdr=(back,seg)=>`<div class="top">${back?`<button class="back" data-act="back"><span aria-hidden="true">‹</span> Indietro</button>`:''}${seg||''}</div>`;
+const opt=(act,v,t,sub,xl,ic)=>{const tx=`<span>${t}${sub?`<small>${sub}</small>`:''}</span>`;return `<button class="opt ${xl?'xl':''}" data-act="${act}" data-v="${v}">${ic?`<span class="oi">${ic}${tx}</span>`:tx}${CHEV}</button>`;};
+
+const fbLink='<button class="lnk" data-act="fb">Questo consiglio non mi convince</button>';
+const warn=fbLink+'<p class="foot">Regola di esempio, non ancora validata da un istruttore.</p>';
+const SU=()=>['hand','sty','ball'].concat(S.ball==='hook'&&S.ballKnown?['spb']:[],['or','line']);
+function vSetup(){const st=SU(),id=st[S.su],seg=`<div class="seg">${st.map((_,i)=>`<i class="${i<=S.su?'f':''}"></i>`).join('')}</div>`;
+ const Q={hand:['Con che mano tiri?','',[['R','Destra','',I.hand('R')],['L','Sinistra','',I.hand('L')]]],
+  sty:['Tiri a una mano o a due?',`Nel ${gw('duemani','tiro a due mani')} le mani restano tutte e due sulla palla fino al rilascio.`,[['1','A una mano','',I.hand(S.hand)],['2','A due mani','',I.hand2(S.hand)]]],
+  ball:['Come va la tua palla?','Guarda cosa fa negli ultimi metri prima dei birilli.',[['hook','Curva (hook)','Negli ultimi metri gira verso i birilli centrali',I.hook()],['str','Va quasi dritta','Per esempio con la palla della sala',I.str()],['boh','Non lo so','Parto come se andasse dritta: lo cambi quando vuoi dal profilo',I.qm()]]],
+  spb:['Hai una palla da spare?','È una palla in plastica che non curva, usata per i birilli rimasti.',[['1',"Sì, ce l'ho",'',I.ball2()],['0','No, uso sempre la stessa','',I.ball1()]]],
+  or:['Come metti i piedi alla partenza?',`Dritti verso i birilli, oppure girati verso il punto dove miri. Le spalle seguono i piedi. Si chiama ${gw('orient','orientamento di piedi e spalle')} e vale per il tiro da strike.`,[['dr','Dritti','Verso i birilli',I.feet(0)],['sx','Girati a sinistra','',I.feet(-16)],['dx','Girati a destra','',I.feet(16)]]],
+  line:['Conosci la tua linea da strike?',`Cioè dove metti di solito i piedi alla partenza e dove miri alle ${gw('frecce','frecce')}.`,[['set','Sì, la imposto ora','Mezzo minuto',I.line()],['no','No, non la conosco',"L'app ti dirà solo di quanto spostarti",I.qm()]]]}[id];
+ return `${hdr(S.su>0,seg)}<div><div class="eyebrow">Configurazione · ${S.su+1} di ${st.length}</div><h1>${Q[0]}</h1></div>${Q[1]?`<p class="mu">${Q[1]}</p>`:''}
+ ${Q[2].map(([v,t,sub,ic])=>opt('su',v,t,sub,0,ic)).join('')}
+ ${S.su===0?'<button class="lnk" data-act="skip">Salta: uso i valori di esempio</button>':''}`;}
+const NOTE={today:()=>S.own?"Salvato nel diario. Ho spostato la linea di oggi: la tua linea abituale resta com'era.":'Salvato nel diario. Ho segnato lo spostamento di oggi: i prossimi consigli partono da lì.',
+ backbase:()=>S.own?'Salvato nel diario. Sei tornato sulla tua linea abituale.':'Salvato nel diario. Sei tornato da dove parti di solito.',
+ kept:()=>S.own?'Fatto: adesso è la tua linea abituale.':'Fatto: la prossima volta parti da dove hai finito.',
+ dropped:()=>S.own?'Scartata: riparti dalla tua linea abituale.':'Spostamento scartato: riparti da dove parti di solito.',spsaved:'Salvato nel diario. La tua linea da strike non cambia.',splsaved:'Salvato nel diario. La prossima volta per questo birillo ti ripropongo la stessa linea.',logged:'Salvato nel diario.'};
+function todayCard(){const t=S.today;if(!t)return'';
+ return `<div class="card col"><div><div class="tag">Linea di oggi</div>${S.own?lineCard(t)+`<div class="mu" style="margin-top:6px">${todayMv()} rispetto alla ${gw('linee','linea abituale')}. I consigli partono da qui.</div>`
+  :`<div class="t">${todayMv()}</div><div class="mu">Rispetto a dove parti di solito. I prossimi consigli partono da qui.</div>`}</div>
+  <div class="row"><button class="btn2" data-act="go" data-v="endday">Chiudi la serata</button>${S.own?'<button class="btn2" data-act="line" data-v="today">Modifica</button>':''}</div></div>`;}
+function vEnd(){const t=S.today;if(!t){S.view='home';return vHome();}const old=S.todayAt!==DAY,w=old?"dell'ultima volta":'di oggi';
+ return `${hdr(!old)}<div><div class="eyebrow">${old?'Dalla tua ultima serata':'Fine serata'}</div><h1>Tieni la linea ${w}?</h1></div>
+ <p class="mu">${S.own?"Se la tieni diventa la tua linea abituale, e la prossima volta l'app parte da lì. Se no, la linea abituale resta quella di prima.":"L'app non conosce i numeri della tua linea, quindi ricorda solo di quanto ti sei spostato."}</p>
+ ${S.own?`<div class="card col"><div class="tag">Linea ${w}</div>${lineCard(t)}<div class="mu">${todayMv()} rispetto all'abituale.</div></div><div class="card col"><div class="tag">Linea abituale</div>${lineCard(S.line)}</div>`
+  :`<div class="card"><div class="tag">Spostamento ${w}</div><div class="t">${todayMv()}</div><div class="mu">Rispetto a dove parti di solito.</div></div>`}
+ <button class="btn2" data-act="endkeep">${S.own?'Sì, diventa la mia linea abituale':'Sì, la prossima volta parto da qui'}</button>
+ <button class="btn2" data-act="enddrop">${S.own?"No, riparto dall'abituale":'No, riparto da dove partivo'}</button>
+ ${old?'<button class="lnk" data-act="endlater">La uso ancora oggi, decido dopo</button>':''}`;}
+function rdHome(){const rd=S.rdl;if(!rd||!rd.w||!(S.note==='spsaved'||S.note==='splsaved'))return'';const n=S.rdn;
+ return n>1?`<div class="hint w"><div><b>I birilli dicono: ${RDN[rd.c]}, per la ${n}ª volta stasera.</b> Conviene correggere prima del prossimo tiro da strike.</div><button class="btn" data-act="rdfix">Correggi il tiro da strike</button></div>`
+  :`<p class="hint">I birilli dicono: ${RDN[rd.c]}. Per un tiro solo non ti sposto: se si ripete te lo segnalo qui.</p>`;}
+function vHome(){const nt=NOTE[S.note];return `
+ <div><div class="eyebrow">${LABEL()}</div><h1>Cosa vuoi fare?</h1></div>
+ ${nt?`<p class="hint">${typeof nt==='function'?nt():nt}</p>`:''}${rdHome()}
+ ${todayCard()}
+ ${opt('spare','','Chiudere uno spare','Come tirare, e cosa dicono i birilli del tuo tiro',1,I.spare())}
+ ${opt('go','prob','Sistemare il tiro da strike','Resta un birillo, non entri in tasca, o ogni tiro è diverso',1,I.strike())}
+ ${gmHome()}
+ ${opt('go','exl','Esercizi','Da provare in allenamento, ognuno con la sua fonte',0,I.drill())}
+ ${opt('line','','La mia linea da strike',S.own?`Abituale: piedi ${S.line.start}, mira ${tgName(S.line.target)}`:"Non impostata: l'app ti dice solo di quanto spostarti",0,I.line())}
+ ${opt('go','diary','Diario',S.diary.length?`${S.diary.length} ${S.diary.length===1?'prova salvata':'prove salvate'}`:'Le correzioni che provi, con il loro esito',0,I.diary())}
+ ${opt('go','prof','Profilo',`${RH()?'Destro':'Mancino'}${TWO()?' a due mani':''} · palla che ${S.ball==='hook'?'curva':'va dritta'}${S.ball==='hook'?(S.spb?' · con palla da spare':' · senza palla da spare'):''}`,0,I.prof())}
+ <button class="lnk" data-act="go" data-v="gloss">Parole del bowling</button>
+ <button class="lnk" data-act="fb" data-v="miss">Cercavi un consiglio che non c'è? Scrivilo</button>
+ <p class="foot">Regole di esempio, non ancora validate da un istruttore.</p>`;}
+function vProb(){return `${hdr(true)}<h1>Cosa non va?</h1>${opt('prob','corner',PROB.corner.name(),'Il birillo d\'angolo dal tuo lato resta in piedi',0,I.corner())}${opt('prob','pocket',PROB.pocket.name(),'La palla arriva sui birilli nel punto sbagliato',0,I.miss())}
+ ${opt('prob','change',PROB.change.name(),'A serata iniziata la stessa linea non porta più in tasca',0,I.clock())}${opt('prob','vary',PROB.vary.name(),'Un tiro va bene e quello dopo no',0,I.vary())}
+ ${opt('prob','aimside',PROB.aimside.name(),'Alle frecce la palla passa sempre dalla stessa parte',0,I.side('in'))}${opt('prob','balance',PROB.balance.name(),'Devo muovermi per non cadere',0,I.bal())}
+ ${opt('spare','','Restano altri birilli o uno split','Tocca quali: ti dico cosa dicono del tuo tiro',0,I.split())}`;}
+function vDiary(){const d=S.diary;return `${hdr(true)}<h1>Diario</h1><div class="card">${d.length?d.map(e=>`<div class="dy"><span class="pill ${e.ok?'ok':''}">${e.lab||(e.ok?'Ha funzionato':'Non risolto')}</span><div><div class="t">${e.p}</div><div class="mu">${e.x}</div></div></div>`).join(''):'<p class="mu">Qui compaiono le correzioni che provi, con il loro esito.</p>'}</div>`;}
+const orNote=()=>{const l=S.line;if(l.orient===0)return'Parti con piedi e spalle dritti verso i birilli.';
+ return S.own?`Parti dal listello ${l.start} girato ${orientTxt(l)} e arrivi al ${l.arrive}. Fa parte della tua linea abituale.`:`Parti girato ${orientTxt(l)}. Finché non imposti la tua linea i consigli sono solo spostamenti e non cambiano. Quando la imposti lo trovi già scelto.`;};
+function vProf(){const orBad=S.own?chkLine(S.line).bad:null;return `${hdr(true)}<h1>Profilo</h1>
+ <div class="card col"><div class="t tl">${I.hand(S.hand)}Mano</div>${sw2('hand','Mano',S.hand,[['R','Destra'],['L','Sinistra']])}</div>
+ <div class="card col"><div class="t tl">${TWO()?I.hand2(S.hand):I.hand(S.hand)}Stile di tiro</div>${sw2('sty','Stile di tiro',String(S.sty),[['1','Una mano'],['2','Due mani']])}${TWO()?`<div class="mu">${gw('duemani','Tiro a due mani')}: piedi e mira si spostano come per chi tira a una mano. Cambiano i consigli sugli spare e sulla velocità, e gli esercizi sul gesto.</div>`:''}</div>
+ <div class="card col"><div class="t tl">${S.ball==='hook'?I.hook():I.str()}La tua palla</div>${sw2('ball','Tipo di tiro',S.ball,[['hook','Curva'],['str','Va dritta']])}<div class="mu">Il tiro che curva si chiama anche ${gw('hook','hook, o gancio')}.</div>${S.ballKnown?'':'<div class="mu">Avevi risposto "non lo so": per ora l\'app la tratta come una palla che va dritta.</div>'}</div>
+ ${S.ball==='hook'?`<div class="card col"><div class="t tl">${I.ball2()}${gw('spareball','Palla da spare')}</div>${sw2('spb','Palla da spare',S.spb?'1':'0',[['1',"Ce l'ho"],['0','Non ce l\'ho']])}</div>`:''}
+ <div class="card col"><div class="t tl">${I.feet(S.line.orient===0?0:((S.line.orient<0)===RH()?16:-16))}${gw('orient','Orientamento di piedi e spalle')}</div>${orSw('por',S.line)}<div class="mu">${orNote()}</div>${orBad?`<div class="hint w"><div><b>Con questo orientamento la tua linea abituale non funziona.</b> ${badTxt(orBad)}</div><button class="btn" data-act="line" data-v="base">Controlla la linea</button></div>`:''}</div>
+ <div class="card"><div class="advr"><div><div class="mu">${gw('piedepalla','Distanza piede-palla')}</div><b style="font-family:var(--f-d);font-size:18px">${S.lay} listelli</b></div><button class="lnk" data-act="layv">Misura o modifica</button></div></div>
+ <div class="card"><div class="advr"><div><div class="t">Cose da rivedere</div><div class="mu">${S.fb.length?`${S.fb.length} ${S.fb.length===1?'nota':'note'} da mandare a chi sviluppa l'app`:'Le note che prendi in sala'}</div></div><button class="lnk" data-act="go" data-v="fbl">Apri</button></div></div>
+ <button class="btn2" data-act="resetup">Rifai la configurazione iniziale</button>
+ ${S.wipe?'<div class="hint w"><div><b>Cancello tutto?</b> Profilo, linee, diario e partite tornano come al primo avvio. Le cose da rivedere restano.</div><div class="row"><button class="btn" data-act="wipeok">Sì, azzera</button><button class="btn2" data-act="wipeno">Annulla</button></div></div>':'<button class="btn2" data-act="wipe">Azzera tutto, per un\'altra persona</button>'}`;}
+function vGloss(){return `${hdr(true)}<h1>Parole del bowling</h1>${Object.keys(G).map(k=>`<div class="card gi">${gico(k)}<div><div class="t">${G[k][0]}</div><div class="mu">${gdef(k)}</div></div></div>`).join('')}`;}
+function vLine(){const tod=S.lineEdit==='today',l=edv(),chk=chkLine(l),fix=chk.bad?fixLine(l):null;
+ const st=(k,lab,v,sub)=>`<div class="step"><div><div class="t">${lab}</div>${sub?`<div class="mu">${sub}</div>`:''}</div><div class="pm"><button data-act="st" data-k="${k}" data-v="-1" aria-label="${lab}: meno">−</button><b>${v}</b><button data-act="st" data-k="${k}" data-v="1" aria-label="${lab}: più">+</button></div></div>`;
+ return `${hdr(true)}<h1>La tua linea da strike</h1>
+ ${S.fresh?'':sw2('ltab','Quale linea',S.lineEdit,[['base','Abituale'],['today','Di oggi']])}
+ <p class="mu">${tod?(S.today?'È la linea che stai usando oggi. Le correzioni che funzionano spostano questa, e i consigli partono da qui.':'Oggi stai usando la linea abituale. Se la cambi qui vale solo per oggi, e i consigli partiranno da questa.'):'È la linea da cui parti di solito. Le correzioni non la toccano: cambia solo se la modifichi qui, o se a fine serata tieni la linea di oggi.'}</p>
+ ${S.fresh&&S.today?'<p class="hint">Hai già uno spostamento di oggi: resta applicato sopra la linea che imposti qui.</p>':''}
+ ${tod&&S.today?'<button class="lnk" data-act="treset">Riparti dalla linea abituale</button>':''}<p class="mu">Usa i pulsanti, oppure tocca la pedana per i piedi e la zona delle ${gw('frecce','frecce')} per la mira. I numeri sono i ${gw('listello','listelli')}.</p>
+ <div class="card col">
+ ${st('start','Piedi alla partenza',l.start,`Bordo interno del piede ${foot()}: ${ftName(l.start)}`)}
+ ${st('target','Mira alle frecce',l.target,cap(tgName(l.target)))}
+ <div><div class="t" style="margin-bottom:6px">${gw('orient','Orientamento di piedi e spalle')}</div>${orSw('or',l)}</div>
+ ${l.orient!==0||l.arrive!==l.start?st('arrive','Arrivo in scivolata',l.arrive,'Stesso piede, a fine scivolata'):''}</div>
+ ${chk.bad?`<div class="hint w"><div><b>Questa linea non funziona.</b> ${badTxt(chk.bad)}</div>${fix?`<button class="btn" data-act="fix" data-v="${fix}">Sposta la mira: ${tgName(fix)}</button>`:''}</div>`:''}
+ <div class="lanebox">${lane({zoom:true,N:{line:l,shot:chk},dim:true})}</div>
+ <div class="card col"><div class="advr"><span class="mu">${gw('piedepalla','Distanza piede-palla')}: <b style="color:var(--tx)">${S.lay} listelli</b></span><button class="lnk" data-act="layv">Modifica</button></div>
+ ${S.ball==='hook'?advRow()+(S.adv?`<div class="mu">Nel percorso della soluzione compare il ${gw('curva','break point (punto di rottura)')}. È una stima grossolana: dipende da olio, palla e velocità, che l'app non conosce.</div>
+  <div class="step"><div><div class="t">Dove la vedi curvare tu</div><div class="mu">${S.bpo==null?'Non indicato: uso la stima':'Listello, contato dal lato della mano'}</div></div><div class="pm"><button data-act="bpo" data-v="-1" aria-label="Break point: meno">−</button><b>${S.bpo==null?'–':S.bpo}</b><button data-act="bpo" data-v="1" aria-label="Break point: più">+</button></div></div>${S.bpo!=null?'<button class="lnk" data-act="bpox">Togli: torna alla stima</button>':''}`:''):''}</div>
+ <button class="btn ${chk.bad?'dis':''}" data-act="lineok" ${chk.bad?'aria-disabled="true"':''}>Conferma la linea</button>`;}
+function vQ(){const pr=PROB[S.prob],n=pr.qs.length,q=pr.qs[S.step],seg=`<div class="seg">${Array.from({length:n},(_,i)=>`<i class="${i<=S.step?'f':''}"></i>`).join('')}</div>`;
+ return `${hdr(true,seg)}<div><div class="eyebrow">${pr.name()} · domanda ${S.step+1} di ${n}</div><h1>${q.t()}</h1></div><p class="mu">${q.s()}</p>
+ ${q.deck?`<div class="card deck">${[[7,8,9,10],[4,5,6],[2,3],[1]].map(rw=>`<div>${rw.map(p=>`<span class="pn ${p===P(10)?'a':p===P(6)?'b':''}">${p}</span>`).join('')}</div>`).join('')}</div>`:''}
+ ${q.o().map(([v,t,sub])=>opt('ans',v,t,sub,0,QI(q.id,v))).join('')}`;}
+function vLook(){const q=S.lookQ,fig=q==='six'?`<div class="card deck">${[[7,8,9,10],[4,5,6],[2,3],[1]].map(rw=>`<div>${rw.map(p=>`<span class="pn ${p===P(10)?'a':p===P(6)?'b':''}">${p}</span>`).join('')}</div>`).join('')}</div>`
+  :q==='vary'||q==='side'?`<div class="card tri"><div>${I.aim('si')}Sulla mira</div><div>${I.aim('no')}Fuori mira</div></div>`
+  :`<div class="card tri">${(RH()?[['alta','Alta'],['tasca','In tasca'],['leggera','Leggera']]:[['leggera','Leggera'],['tasca','In tasca'],['alta','Alta']]).map(([k,t])=>`<div>${I.hit(k)}${t}</div>`).join('')}</div>`;
+ return `${hdr(true)}<h1>Guardalo al prossimo tiro</h1><p>${LOOK[q]()}</p>${fig}<p class="mu">Resta fermo in posizione e segui la palla con gli occhi fino in fondo: è il modo più semplice per vederlo.</p>
+ <button class="btn" data-act="seen">L'ho visto, riprendi</button><button class="btn2" data-act="cant">Non riesco a vederlo</button>`;}
+function vSol(){const r=S.res,pn=PROB[S.prob].name();
+ if(r.info)return `${hdr(true)}<div><div class="eyebrow">${pn}</div><h1>Con un tiro dritto il ${P(10)} resta spesso</h1></div>
+  <p>Una palla che va dritta entra nei birilli con poco angolo, e il ${P(10)} resta in piedi più facilmente. Per questo caso il prototipo non ha ancora una regola validata, quindi non ti sposto.</p>
+  <div class="card"><div class="tag">Cosa puoi fare adesso</div><div class="t">Chiudere lo spare del ${P(10)}.</div></div>
+  <button class="btn" data-act="sp10">Vedi come chiudere il ${P(10)}</button><button class="btn2" data-act="home">Torna al menù</button>
+  <p class="foot">Regola da scrivere con un istruttore.</p>`;
+ if(r.block)return `${hdr(true)}<div><div class="eyebrow">${pn}</div><h1>${r.block==='line'?'Prima controlla la tua linea':'Questa correzione non te la propongo'}</h1></div>
+  <p>${r.block==='line'?badTxt(r.badk)+' Con una linea così non posso calcolare una correzione sensata.':`Dalla tua linea, lo spostamento normale (${mvTxt(r.df)} con i piedi) manderebbe la palla fuori dalla zona utile. Meglio controllare la linea che seguire un consiglio sbagliato.`}</p>
+  <div class="card">${lineCard(r.before)}</div>
+  <div class="row"><button class="btn" data-act="line">Controlla la linea</button><button class="btn2" data-act="home">Torna al menù</button></div>`;
+ if(S.phase===2)return `${hdr(false)}<div><div class="eyebrow">${pn}</div><h1>Fermati qui</h1></div><p>Due tentativi senza risultato. Altri spostamenti alla cieca rischiano di confondere: fatti guardare da un istruttore o da un compagno esperto.</p>
+  <div class="card"><div class="t">Nel diario trovi cosa hai provato.</div><div class="mu">Mostralo a chi ti guarda: gli serve per capire da dove partire.</div></div>
+  <div class="row"><button class="btn" data-act="go" data-v="diary">Apri il diario</button><button class="btn2" data-act="home">Torna al menù</button></div>`;
+ if(r.tagB)return `${hdr(true)}<div><div class="eyebrow">${pn} · consiglio</div><h1>${r.title}</h1></div>
+  ${r.ans&&r.ans.length?`<div class="chips"><span class="mu">Hai risposto:</span>${r.ans.map(t=>`<span class="tag2">${t}</span>`).join('')}</div>`:''}<p>${r.why}</p>
+  ${r.chk?`<div class="card col"><div class="tag">${r.tagB}</div><ol class="ol">${r.chk.map(c=>`<li>${c}</li>`).join('')}</ol></div>`:`<div class="card gi">${r.ico?TIPI[r.ico]():''}<div><div class="tag">${r.tagB}</div><div class="t">${r.planB}</div></div></div>`}
+  ${r.exs&&r.exs.length?`<div class="card col"><div class="tag">${r.exs.length>1?'Esercizi collegati':'Esercizio collegato'}</div>${r.exs.map(k=>`<button class="lnk" data-act="ex" data-v="${k}">${EX[k].n}</button>`).join('')}</div>`:''}
+  ${r.src?`<div class="card col"><div class="tag">${r.src.length>1?'Fonti':'Fonte'}</div>${r.src.map(k=>`<div><div class="mu">${SRC[k][0]}</div><a class="lnk" href="${SRC[k][1]}" target="_blank" rel="noopener">Apri la guida, in inglese</a></div>`).join('')}</div>`:''}
+  <p class="mu">Per ora piedi e mira restano dove sono. ${r.chk?'Sono riassunti di guide pubblicate: non sostituiscono chi ti guarda tirare.':'Quando il tiro si ripete, torna qui per correggere la linea.'}</p>
+  <button class="btn" data-act="home">Torna al menù</button>${warn}`;
+ const af=r.after,b=r.before,rel=!S.own,df=af.start-b.start,dt=af.target-b.target;
+ const A={line:b,shot:mkShot(b,r.xe,r.straight,false)},N=r.none?A:{line:af,shot:mkShot(af,17.5,r.straight,true)},bad=!r.none&&N.shot.bad;
+ const path=rel?'<button class="lnk" data-act="line">Imposta la tua linea per vedere numeri e percorso</button>'
+  :`<h2>3 · Il percorso sulla pista</h2><div class="lanebox">${lane({zoom:false,A:r.none?null:A,N,adv:S.adv&&!r.straight})}</div>${r.none?'':'<div class="lg"><span><i class="d"></i>tiro di prima (stima)</span><span><i></i>tiro consigliato</span></div>'}${r.straight?'':advRow()}`;
+ if(S.phase===1)return `${hdr(true)}<div><div class="eyebrow">${pn} · alternativa</div><h1>Prova questo per tre tiri</h1></div>
+  <div class="card"><div class="tag">Alternativa</div><div class="t">${r.planB}</div>${r.tip?`<div class="mu" style="margin-top:6px">${r.tip}</div>`:''}</div>
+  <div class="row"><button class="btn" data-act="ok">Ora funziona</button><button class="btn2" data-act="ko">Ancora no</button></div>${warn}`;
+ const feet=`<div class="card"><div class="tag">1 · Piedi</div>${df===0?`<div class="big">${r.none?r.now:'Resta dove sei'}</div>`:`<div class="big">${cap(mvTxt(df))}</div>
+  <div class="mu">${cap(shoeTxt(Math.abs(df)))} (${gw('scarpa','perché la scarpa')}). ${rel?'Rispetto a dove parti adesso.':`Dal listello ${b.start} al ${af.start}: ${ftName(af.start)}.${dotNote(af.start)}`}</div><div class="lanebox">${moveFig(b.start,af.start,!rel,oAng(b),oAng(af))}</div>
+  <div class="mu" style="margin-top:6px">Contorno: dove sei adesso. Pieno: dove andare. La riga chiara è il bordo interno del piede ${foot()}.</div>`}${rel||r.none?'':orBoxOf(af)}</div>`;
+ const aim=`<div class="card"><div class="tag">2 · Mira</div><div class="big">${dt===0?'Stessa mira':cap(mvTxt(dt))}</div>${rel?(dt?'<div class="mu">Rispetto al punto dove miri adesso.</div>':''):`<div class="mu">${cap(tgName(af.target))}.</div><div class="lanebox">${aimFig(af.target,b.target)}</div>`}</div>`;
+ return `${hdr(true)}<div><div class="eyebrow">${pn} · soluzione</div><h1>${r.title}</h1></div>
+  ${r.ans&&r.ans.length?`<div class="chips"><span class="mu">Hai risposto:</span>${r.ans.map(t=>`<span class="tag2">${t}</span>`).join('')}</div>`:''}<p>${r.why}</p>
+  ${feet}${aim}${path}
+  ${bad?`<p class="hint w"><span><b>Con questo orientamento la linea non funziona.</b> ${badTxt(bad)} Rimetti i piedi come prima.</span></p>`:''}
+  <div class="card gi">${r.ico?TIPI[r.ico]():''}<div><div class="tag">${r.tagB||(r.end?'Cosa puoi fare':'Se dopo 3 tiri fatti bene non cambia')}</div><div class="t">${r.planB}</div>${r.tip?`<div class="mu" style="margin-top:6px">${r.tip}</div>`:''}</div></div>
+  ${r.end?'<button class="btn" data-act="home">Torna al menù</button>':`<div class="row"><button class="btn ${bad?'dis':''}" data-act="ok" ${bad?'aria-disabled="true"':''}>Ha funzionato</button><button class="btn2" data-act="ko">Non ancora</button></div>`}
+  ${rel||!S.own?'':`<button class="lnk" data-act="line">Parto dalla tua linea ${S.today?'di oggi':'abituale'}. Non è questa? Cambiala</button>`}${warn}`;}
+function vSp(){const sel=p=>S.sp.includes(p);return `${hdr(true)}<h1>Quali birilli sono rimasti?</h1><p class="mu">Tocca i birilli ancora in piedi, come li vedi dalla pedana. Ti dico come chiudere lo spare e cosa dicono del tuo tiro da strike.</p>
+ <div class="card deck">${[[7,8,9,10],[4,5,6],[2,3],[1]].map(rw=>`<div>${rw.map(p=>`<button class="pn pb ${sel(p)?'a':''}" data-act="pin" data-v="${p}" aria-pressed="${sel(p)}" aria-label="Birillo ${p}">${p}</button>`).join('')}</div>`).join('')}</div>
+ <div class="card"><div class="advr"><span class="mu">${S.ball==='str'?'Tiri dritto: per gli spare usi lo stesso tiro.':(S.spb?`Per i birilli lontani dal centro userai la ${gw('spareball','palla da spare')}.`:`Non hai una ${gw('spareball','palla da spare')}: per i birilli lontani dal centro serve un tiro dritto con la palla da strike.`)}</span><button class="lnk" data-act="go" data-v="prof">Cambia</button></div></div>
+ <button class="btn ${S.sp.length?'':'dis'}" data-act="spgo" ${S.sp.length?'':'aria-disabled="true"'}>${S.sp.length?'Vedi come tirarlo':'Scegli almeno un birillo'}</button>`;}
+function readCard(r){const rd=r.rd;if(!rd)return'';const tag='<div class="tag">Cosa dice del tuo tiro da strike</div>';
+ if(!rd.c)return `<div class="card">${tag}<div class="mu">Per questi birilli non ho una lettura affidabile del tiro.</div></div>`;
+ const n=rd.w?rdCount(rd.c):0,ico=rd.c==='corner'?I.corner():rd.c==='seven'?I.qm():I.hit(rd.c==='tap'?'tasca':rd.c);
+ const cnt=!rd.w?'':n>1?`<div class="t">Stasera è la ${n}ª volta che i birilli dicono "${RDN[rd.c]}". Conviene correggere.</div>`:'<div class="mu">Un tiro solo non basta per spostarsi. Se si ripete, correggi.</div>';
+ const btn=rd.c==='corner'?`<button class="btn2" data-act="rdfix">Capire perché resta il ${P(10)}</button>`:rd.c==='seven'?'<button class="lnk" data-act="rdfix">Controlla dove colpisce la palla</button>'
+  :rd.w?(n>1?'<button class="btn2" data-act="rdfix">Correggi il tiro da strike</button>':'<button class="lnk" data-act="rdfix">Correggi già adesso</button>'):'';
+ return `<div class="card col"><div class="gi">${ico}<div>${tag}<div class="t">${rd.t}</div><div class="mu">${rd.x}</div></div></div>${cnt}${btn}</div>`;}
+function vSpSol(){const r=S.res,name=S.sp.slice().sort((a,b)=>a-b).join('-'),end='<div class="row"><button class="btn" data-act="spok">Chiuso</button><button class="btn2" data-act="spko">Mancato</button></div>';
+ const pins=`<div class="card deck">${[[7,8,9,10],[4,5,6],[2,3],[1]].map(rw=>`<div>${rw.map(p=>`<span class="pn ${S.sp.includes(p)?'a':''}">${p}</span>`).join('')}</div>`).join('')}</div>`;
+ if(r.limit)return `${hdr(true)}<div><div class="eyebrow">Spare ${name}</div><h1>Birillo ${r.pk}: qui la regola non basta</h1></div>
+  <p>Dalla tua linea da strike il ${gw('tresei','sistema 3-6-9')} ti manderebbe ${r.n} listelli a ${r.dirF}: troppo vicino al bordo, o con la palla fuori pista. In questi casi si sposta anche la mira, ma quella regola va scritta con un istruttore.</p>
+  <div class="card">${lineCard(r.before)}</div>${readCard(r)}<div class="row"><button class="btn" data-act="line">Controlla la linea</button><button class="btn2" data-act="home">Torna al menù</button></div>${fbLink}`;
+ const af=r.after,b=r.before,df=af.start-b.start,N={line:af,shot:mkShot(af,r.xk,r.straight,false,r.Dv)};N.shot.tm=r.straight;
+ const bad=mkShot(af,r.xk,r.straight,false,r.D).bad;
+ const feet=r.abs?`<div class="big">${cap(ftName(af.start))}</div><div class="mu">Bordo interno del piede ${foot()} sul listello ${af.start}.${dotNote(af.start)}${S.own&&df?` Sono ${mvTxt(df)} dalla tua linea ${S.today?'di oggi':'da strike'}.`:''}</div><div class="lanebox">${moveFig(null,af.start,true,0,oAng(af))}</div>`
+  :(df===0?'<div class="big">Resta dove sei</div>':`<div class="big">${cap(mvTxt(df))}</div><div class="mu">${cap(shoeTxt(Math.abs(df)))}${S.own?`: dal listello ${b.start} al ${af.start}`:', rispetto a dove parti per lo strike'}.</div><div class="lanebox">${moveFig(b.start,af.start,S.own,oAng(b),oAng(af))}</div>`);
+ const aim=r.abs?`<div class="big">${cap(tgName(af.target))}</div><div class="lanebox">${aimFig(af.target)}</div>`:`<div class="big">Stessa mira dello strike</div>${S.own?`<div class="mu">${cap(tgName(af.target))}.</div>`:''}`;
+ const ball=!r.straight||S.ball==='str'?'':TWO()?(S.spb?`<div class="card"><div class="tag">Palla</div><div class="t">Usa la ${gw('spareball','palla da spare')} e tieni le mani piatte dietro la palla.</div><div class="mu">A due mani la palla gira molto. Con le mani piatte rotola in avanti senza girare di lato. Aiuta anche tirare un po' più veloce: con passi più rapidi, non con le braccia.</div></div>`
+  :`<div class="card"><div class="tag">Palla</div><div class="t">Con la palla da strike tieni le mani piatte dietro la palla e tira un po' più veloce.</div><div class="mu">Con le mani piatte la palla rotola in avanti senza girare di lato. La velocità in più viene da passi più rapidi, non dalle braccia. A due mani è il tiro più difficile da ripetere: una ${gw('spareball','palla da spare')} in plastica lo rende molto più semplice.</div></div>`)
+  :(S.spb?`<div class="card"><div class="tag">Palla</div><div class="t">Usa la ${gw('spareball','palla da spare')}: va dritta da sola.</div></div>`
+  :`<div class="card"><div class="tag">Palla</div><div class="t">Con la palla da strike devi tenere la mano piatta per non farla curvare.</div><div class="mu">È il tiro più difficile da ripetere. Con una ${gw('spareball','palla da spare')} diventa molto più semplice: valuta di procurartene una.</div></div>`);
+ return `${hdr(true)}<div><div class="eyebrow">Spare ${name} · come tirarlo</div><h1>${r.title}</h1></div><p>${r.why}</p>${r.saved?'<button class="lnk" data-act="spldel">Non è più la tua linea? Torna al consiglio dell\'app</button>':''}${ball}
+ <div class="card"><div class="tag">1 · Piedi</div>${feet}${r.abs?orBoxOf(af):''}</div>
+ <div class="card"><div class="tag">2 · Mira</div>${aim}</div>
+ ${r.abs||S.own?`<h2>3 · Il percorso sulla pista</h2><div class="lanebox">${lane({zoom:false,N,pins:r.pins})}</div>`:''}
+ ${bad?`<p class="hint w"><span><b>Con questo orientamento il tiro non arriva al birillo.</b> Rimetti i piedi come prima.</span></p>`:''}
+ ${r.alt&&TWO()?`<p class="mu">A chi tira a una mano qui proporrei anche il ${gw('tresei','sistema 3-6-9')} con la palla che curva. A due mani spesso non funziona, perché la palla curva di più: resta sul tiro dritto.</p>`:r.alt?`<div class="card"><div class="tag">Alternativa con la palla che curva</div><div class="t">Stessa mira dello strike e piedi ${r.alt.n} listelli a ${r.alt.dirF}.</div><div class="mu">È il ${gw('tresei','sistema 3-6-9')}. Funziona se la palla curva sempre allo stesso modo: quando la pista cambia è meno affidabile del tiro dritto.</div></div>`:''}
+ ${readCard(r)}
+ ${end}${warn}`;}
+function layFig(){const bw=14,n=20,W=bw*n+20,H=132,rh=RH(),xOf=i=>rh?W-10-i*bw:10+i*bw,ib=5,ie=ib+S.lay,cy=72,yb=64,xe=xOf(ie),xl=xOf(ib);
+ let g=`<rect class="la" x="0" y="0" width="${W}" height="${H}"/>`;for(let i=0;i<=n;i++)g+=`<line class="ll" x1="${xOf(i)}" y1="0" x2="${xOf(i)}" y2="${H}"/>`;
+ g+=`<circle class="fb" cx="${xl}" cy="${yb}" r="${4*bw}"/>`+sole(xOf(ie+1.9),cy,3.8*bw,108,rh,'sN')+`<path class="dim" d="M${xe} ${yb}H${xl}"/><circle class="sR" cx="${xe}" cy="${yb}" r="3.2"/><circle class="mN" cx="${xl}" cy="${yb}" r="3.2"/><text class="dimt" x="${(xe+xl)/2}" y="${yb-7}" text-anchor="middle" font-size="13">${S.lay}</text>`;
+ return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Piede di scivolata e palla visti dall'alto, con la distanza in listelli">${g}</svg>`;}
+function vLay(){return `${hdr(true)}<h1>Distanza tra piede e palla</h1>
+ <p class="mu">Sono i listelli tra il bordo interno del piede ${foot()}, a fine scivolata, e il centro della palla quando tocca la pista. Cambia da persona a persona.</p>
+ <div class="lanebox">${layFig()}</div>
+ <div class="card"><div class="step"><div><div class="t">La tua distanza</div><div class="mu">In listelli</div></div><div class="pm"><button data-act="lay" data-v="-1" aria-label="Distanza: meno">−</button><b>${S.lay}</b><button data-act="lay" data-v="1" aria-label="Distanza: più">+</button></div></div></div>
+ <div class="card"><div class="tag">Come misurarla</div><div class="t">Con calma, fuori partita: fatti guardare da dietro, o riprenditi, per 3-5 tiri.</div><div class="mu" style="margin-top:4px">Segna il listello dove si ferma il bordo interno del piede e quello dove la palla tocca la pista. La differenza è la tua distanza.</div></div>
+ <div class="row"><button class="btn" data-act="back">Fatto</button><button class="btn2" data-act="lay6">Non la conosco: lascio 6</button></div>`;}
+/* ---- cose da rivedere: note prese in sala. Restano anche dopo "Azzera tutto", così il telefono può passare da un giocatore all'altro. ---- */
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const FBW={num:'I numeri non tornano',txt:'Non si capisce',man:'Manca qualcosa',alt:'Altro'};
+const fbProf=()=>{const l=cur();return `${RH()?'destro':'mancino'}${TWO()?' a due mani':''}, palla che ${S.ball==='hook'?'curva':'va dritta'}${S.ball==='hook'?(S.spb?', con palla da spare':', senza palla da spare'):''}, ${S.own?`linea piedi ${l.start}, mira ${l.target}${l.orient?`, girato ${orientTxt(l)} con arrivo al ${l.arrive}`:''}`:'linea non impostata'}`;};
+function fbCtx(){const r=S.res,ln=l=>`piedi ${l.start}, mira ${l.target}${l.orient?', girato '+orientTxt(l):''}`;
+ if(S.view==='exd'&&EX[S.ex])return{s:'Esercizio: '+EX[S.ex].n,d:''};
+ if(S.view==='gm'||S.view==='gst')return{s:S.view==='gm'?(S.gm&&S.gm.done?'Analisi a fine partita':'Partita in corso'):'Partite e record',d:''};
+ if(S.view==='spsol'&&r)return{s:'Spare '+S.sp.slice().sort((a,b)=>a-b).join('-'),d:r.limit?'Nessun consiglio: la regola non basta':`${r.title}: ${r.abs?ln(r.after):moveSum(r.after.start-r.before.start,0)}`};
+ if(S.view==='sol'&&r&&S.prob){const mv=r.after&&r.before&&!r.none?moveSum(r.after.start-r.before.start,r.after.target-r.before.target):'';
+  return{s:PROB[S.prob].name(),d:`${r.title||'Consiglio'}${r.ans&&r.ans.length?' ('+r.ans.join(', ')+')':''}${mv?': '+mv:''}${S.phase===1?' · alternativa':''}`};}
+ return{s:'Schermata '+S.view,d:''};}
+const fbText=()=>[`App Bowling · ${LABEL()} · cose da rivedere: ${S.fb.length}`,...S.fb.slice().reverse().map((e,i)=>[`\n${i+1}) ${e.t} · ${e.s}`,e.d?`   Consiglio: ${e.d}`:'',e.w?`   Cosa non va: ${e.w}`:'',e.x?`   Nota: ${e.x}`:'',`   Profilo: ${e.p}`].filter(Boolean).join('\n')),
+ ...(S.diary.length?['\nDiario di chi ha il telefono adesso:',...S.diary.map(e=>`- ${e.p} · ${e.lab||(e.ok?'Ha funzionato':'Non risolto')} · ${e.x}`)]:[])].join('\n');
+function fbSheet(){const f=S.fbs;if(!f)return'';
+ if(f.done)return `<div class="sheet" role="dialog" aria-label="Segnato"><div class="t">Segnato.</div><p class="mu">Lo trovi nel Profilo, in "Cose da rivedere": da lì copi tutto e lo mandi a chi sviluppa l'app.</p><button class="btn2" data-act="fbx">Chiudi</button></div>`;
+ const ok=f.txt.trim()||(!f.miss&&f.why);
+ return `<div class="sheet" role="dialog" aria-label="${f.miss?'Consiglio che manca':'Cosa non va'}"><div class="t">${f.miss?'Che consiglio cercavi?':'Cosa non va in questo consiglio?'}</div>
+  ${f.miss?'<p class="mu">Scrivi la situazione in cui ti serviva un aiuto e non l\'hai trovato.</p>':`<p class="mu">${esc(f.ctx.s)}${f.ctx.d?': '+esc(f.ctx.d):''}</p><div class="fbo" role="group" aria-label="Cosa non va">${Object.keys(FBW).map(k=>`<button data-act="fbw" data-v="${k}" aria-pressed="${f.why===k}">${FBW[k]}</button>`).join('')}</div>`}
+  <textarea class="fbt" id="fbt" maxlength="300" aria-label="Nota" placeholder="${f.miss?'Per esempio: la palla finisce spesso nel canale':'Due parole, se vuoi'}">${esc(f.txt)}</textarea>
+  <div class="row"><button class="btn ${ok?'':'dis'}" data-act="fbsave" ${ok?'':'aria-disabled="true"'}>Salva</button><button class="btn2" data-act="fbx">Annulla</button></div></div>`;}
+function vFb(){const n=S.fb.length;return `${hdr(true)}<h1>Cose da rivedere</h1>
+ <p class="mu">Qui trovi i consigli che non ti hanno convinto e quelli che cercavi senza trovarli. Restano anche dopo "Azzera tutto".</p>
+ ${n?`<div class="card">${S.fb.map((e,i)=>`<div class="dy"><div style="flex:1;min-width:0"><div class="t">${esc(e.s)}</div>${e.d?`<div class="mu">${esc(e.d)}</div>`:''}${e.w?`<div class="mu"><b>${esc(e.w)}</b></div>`:''}${e.x?`<div>${esc(e.x)}</div>`:''}<div class="mu">${esc(e.t)} · ${esc(e.p)}</div></div><button class="lnk" data-act="fbdel" data-v="${i}" aria-label="Togli la nota ${i+1}">Togli</button></div>`).join('')}</div>
+ <p class="mu">Il testo copiato contiene queste note e il diario.</p>
+ <div class="row"><button class="btn" data-act="fbcopy">Copia tutto</button>${navigator.share?'<button class="btn2" data-act="fbshare">Condividi</button>':''}</div>
+ ${S.fbc==='ok'?'<p class="hint">Copiato. Incollalo nel messaggio per chi sviluppa l\'app.</p>':''}
+ ${S.fbc==='man'?`<p class="hint">Da qui non riesco a copiare da solo. Tieni premuto sul testo qui sotto, scegli "Seleziona tutto" e poi "Copia".</p><textarea class="fbt fbx" readonly aria-label="Testo da copiare">${esc(fbText())}</textarea>`:''}
+ ${S.fbc==='del'?'<div class="hint w"><div><b>Cancello tutte le note?</b></div><div class="row"><button class="btn" data-act="fbwipe">Sì, cancella</button><button class="btn2" data-act="fbkeep">Annulla</button></div></div>':'<button class="lnk" data-act="fbwipe">Cancella tutte le note</button>'}`
+ :'<div class="card"><p class="mu">Ancora niente. Quando un consiglio non ti convince, tocca "Questo consiglio non mi convince" in fondo alla schermata.</p></div>'}`;}
+/* ---- partita: dopo ogni tiro si segnano i birilli rimasti in piedi, con i numeri come li vede chi gioca. Punteggio ufficiale:
+   strike = 10 più i due tiri dopo, spare = 10 più il tiro dopo, nel decimo frame uno o due tiri in più (USBC "Keeping Score").
+   Dai birilli rimasti escono le statistiche, la lettura del tiro da strike e il collegamento al consiglio per lo spare. ---- */
+const ALLP=[1,2,3,4,5,6,7,8,9,10],pkey=a=>a.slice().sort((x,y)=>x-y).join('-'),pct=(a,b)=>b?Math.round(100*a/b)+'%':'–';
+const artK=a=>{const s=a.slice().sort((x,y)=>x-y);return art(s[0])+(s.length>1?'-'+s.slice(1).join('-'):'');};
+function gmCalc(R){const fr=[],sh=[],k=[];let i=0,next=null;
+ for(let f=0;f<10&&!next;f++){const F={c:[],full:[],i,cum:null};fr.push(F);let rack=ALLP;
+  for(let b=0;b<(f<9?2:3);b++){
+   if(i>=R.length){next={f,b,rack};break;}
+   const s=R[i],full=rack.length===10,n=rack.length-s.length;F.c.push(n);F.full.push(full);k.push(n);
+   if(full)sh.push({lv:s,cv:null,f,i});else{const q=sh[sh.length-1];if(q&&q.f===f&&q.cv===null)q.cv=!s.length;}
+   i++;
+   if(f<9){if(!s.length)break;rack=s;}
+   else{if(b===1&&F.c[0]<10&&s.length)break;rack=s.length?s:ALLP;}}}
+ let cum=0,run=true,open=0;
+ fr.forEach((F,f)=>{const c=F.c,j=F.i;let sc=null;
+  if(f<9){if(c[0]===10){if(k.length>j+2)sc=10+k[j+1]+k[j+2];}else if(c.length===2){if(c[0]+c[1]===10){if(k.length>j+2)sc=10+k[j+2];}else sc=c[0]+c[1];}}
+  else if(c.length===3||(c.length===2&&c[0]+c[1]<10))sc=c[0]+c[1]+(c[2]||0);
+  if(c.length>=2&&c[0]<10&&c[0]+c[1]<10)open++;
+  if(run&&sc!==null){cum+=sc;F.cum=cum;}else run=false;});
+ return{fr,sh,next,done:!next,cum,open,st:sh.filter(x=>!x.lv.length).length,sp:sh.filter(x=>x.cv).length};}
+const gmMark=(F,b)=>F.full[b]?(F.c[b]===10?'X':F.c[b]||'-'):(F.c[b-1]+F.c[b]===10?'/':F.c[b]||'-');
+const gmBoard=c=>`<div class="sb" role="img" aria-label="Tabellone${c.cum?`: ${c.cum} punti`:''}">${ALLP.map((_,f)=>{const F=c.fr[f];return `<div class="${c.next&&c.next.f===f?'on':''}"><i>${f+1}</i><b>${F?F.c.map((_,b)=>gmMark(F,b)).join(' '):''}</b><span>${F&&F.cum!==null?F.cum:''}</span></div>`;}).join('')}</div>`;
+const gmLine=c=>c.fr.map(F=>F.c.map((_,b)=>gmMark(F,b)).join('')).join(' | ');
+const gmShare=g=>{const c=gmCalc(g.r);return `Bowling, partita del ${g.d}: ${c.cum} punti\n${gmLine(c)}\n${c.st} strike, ${c.sp} spare, ${c.open} frame aperti`;};
+function gmRoll(s){const g=S.gm;if(!g||g.done)return;g.r.push(s.slice().sort((a,b)=>a-b));S.gsel=[];const c=gmCalc(g.r);
+ if(c.done){g.done=true;S.games=S.games.filter(x=>x.t!==g.t);S.games.unshift({t:g.t,d:g.d,sc:c.cum,r:g.r.map(x=>x.slice()),...(g.ph?{ph:1}:{})});S.games=S.games.slice(0,50);}save();}
+/* Lettura del tiro da strike dai birilli appena rimasti. Conta le volte in questa partita, dall'ultima correzione aperta da qui (g.fx). */
+const gmRd=()=>{const g=S.gm,c=g&&!g.done?gmCalc(g.r):null;if(!c||!c.next||c.next.rack.length===10)return null;const rd=readLeave(c.next.rack.map(P));if(!rd.c)return null;
+ return{...rd,n:rd.w?c.sh.filter(x=>x.i>=(g.fx||0)&&x.lv.length&&readLeave(x.lv.map(P)).c===rd.c).length:0};};
+const rdBox=rd=>!rd?'':rd.c==='corner'?`<div class="hint"><div><b>${rd.t}.</b> ${rd.x}</div><button class="lnk" data-act="rdfix">Capire perché resta il ${P(10)}</button></div>`
+ :!rd.w||!rd.n?'':rd.n>1?`<div class="hint w"><div><b>I birilli dicono: ${RDN[rd.c]}, per la ${rd.n}ª volta in questa partita.</b> Conviene correggere il tiro da strike.</div><button class="btn2" data-act="rdfix">Correggi il tiro da strike</button></div>`
+ :`<p class="hint">I birilli dicono: ${RDN[rd.c]}. Per un tiro solo non ti sposto: se si ripete te lo segnalo qui.</p>`;
+function gmStats(){let fb=0,st=0,at=0,cv=0,a1=0,c1=0,best=0,bd='',row=0,sum=0,n=0;const lv={},rd={leggera:0,alta:0};
+ S.games.forEach(g=>{const c=gmCalc(g.r);if(!c.done)return;n++;sum+=c.cum;if(c.cum>best||!bd){best=c.cum;bd=g.d;}let run=0;
+  c.sh.forEach(x=>{fb++;if(!x.lv.length){st++;run++;row=Math.max(row,run);return;}run=0;
+   const k=pkey(x.lv),e=x.lv.length<10&&!g.nk?(lv[k]=lv[k]||{k,n:0,a:0,c:0}):{n:0,a:0,c:0};e.n++;
+   if(x.cv!==null){at++;e.a++;if(x.cv){cv++;e.c++;}if(x.lv.length===1){a1++;if(x.cv)c1++;}}
+   if(g.nk)return;const r=readLeave(x.lv.map(P));if(r.w)rd[r.c]++;});});
+ return{n,avg:n?Math.round(sum/n):0,best,bd,row,fb,st,at,cv,a1,c1,rd,lv:Object.values(lv).sort((a,b)=>(b.a-b.c)-(a.a-a.c)||b.n-a.n)};}
+const recShare=s=>`Bowling: record ${s.best} punti (${s.bd}), media ${s.avg} su ${s.n} ${s.n===1?'partita':'partite'}\nStrike ${pct(s.st,s.fb)} dei primi tiri, spare chiusi ${pct(s.cv,s.at)}`;
+const shText=()=>S.view==='gm'&&S.gm?gmShare(S.gm):recShare(gmStats());
+const shRow=()=>`<div class="row"><button class="btn2" data-act="shcopy">Copia il risultato</button>${navigator.share?'<button class="btn2" data-act="shshare">Condividi</button>':''}</div>`;
+const shBox=()=>S.shc==='ok'?'<p class="hint">Copiato. Incollalo dove vuoi.</p>':S.shc==='man'?`<p class="hint">Da qui non riesco a copiare da solo. Tieni premuto sul testo qui sotto, scegli "Seleziona tutto" e poi "Copia".</p><textarea class="fbt fbx" style="min-height:110px" readonly aria-label="Testo da copiare">${esc(shText())}</textarea>`:'';
+const gmHome=()=>{const g=S.gm,n=S.games.length;if(g&&!g.done){const c=gmCalc(g.r);return opt('game','','Riprendere la partita',`In corso: frame ${c.next.f+1} di 10${c.cum?`, ${c.cum} punti`:''}`,0,I.score());}
+ return opt('game','','Segnare una partita',n?`${n} ${n===1?'partita':'partite'} · record ${Math.max(...S.games.map(x=>x.sc))}`:'Punteggio, statistiche e gli spare che sbagli di più',0,I.score());};
+/* ---- foto della partita: scelta dal telefono (fotocamera o galleria), ridotta e salvata sul dispositivo in IndexedDB. Non viene inviata da nessuna parte.
+   Nel salvataggio normale resta solo il segno ph:1 sulla partita. Se IndexedDB non è disponibile la foto vive finché la pagina resta aperta. ---- */
+const PH={};let phDb=null,phMem=false,phErr='';
+const phTx=(mode,fn)=>new Promise(res=>{if(!phDb)return res(null);try{const tx=phDb.transaction('f',mode),rq=fn(tx.objectStore('f'));tx.oncomplete=()=>res(rq&&rq.result!==undefined?rq.result:true);tx.onerror=tx.onabort=()=>res(null);}catch(e){res(null);}});
+const phFile=u=>{try{const b=atob(u.split(',')[1]),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return new File([a],'partita-bowling.jpg',{type:'image/jpeg'});}catch(e){return null;}};
+async function phSet(t,file){phErr='';let url='';
+ try{let im=null;try{im=await createImageBitmap(file,{imageOrientation:'from-image'});}catch(e){}
+  if(!im)im=await new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const g=new Image();g.onload=()=>res(g);g.onerror=rej;g.src=fr.result;};fr.readAsDataURL(file);});
+  const k=Math.min(1,1280/Math.max(im.width,im.height)),cv=document.createElement('canvas'),cx=cv.getContext('2d');cv.width=Math.max(1,Math.round(im.width*k));cv.height=Math.max(1,Math.round(im.height*k));
+  cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(im,0,0,cv.width,cv.height);url=cv.toDataURL('image/jpeg',.72);if(im.close)im.close();}catch(e){url='';}
+ if(url.length<200){phErr="Non riesco a leggere questa foto. Prova con un'altra, o scattala di nuovo.";render();return;}
+ PH[t]=url;const g=S.gm,e=S.games.find(x=>x.t===t);if(g&&g.t===t)g.ph=1;if(e)e.ph=1;save();render();
+ const ok=await phTx('readwrite',s=>s.put(url,t));if(!ok){phMem=true;render();}}
+function phDel(t){delete PH[t];const g=S.gm,e=S.games.find(x=>x.t===t);if(g&&g.t===t)delete g.ph;if(e)delete e.ph;save();phTx('readwrite',s=>s.delete(t));}
+const phBox=g=>{const u=PH[g.t];return (u?`<div class="card col"><div class="tag">Foto della partita</div><img class="ph" src="${u}" alt="Foto della partita del ${esc(g.d)}">${phMem?'<div class="mu">Su questo telefono non riesco a salvarla: resta finché tieni aperta l\'app.</div>':''}<div class="row"><button class="btn2" data-act="gphoto">Cambia foto</button><button class="btn2" data-act="gphdel">Togli la foto</button></div></div>`
+  :'<button class="btn2" data-act="gphoto">Carica o fai una foto</button><p class="mu">Per esempio il tabellone della sala. Resta su questo telefono, insieme alla partita.</p>')+(phErr?`<p class="hint w"><span>${phErr}</span></p>`:'');};
+/* ---- partita già giocata: i tiri letti da una foto del tabellone, oppure scritti a mano guardando la foto.
+   La lettura chiede a Claude di guardare l'immagine: funziona solo dove la pagina ha questo permesso (SMP.img), altrove resta la scrittura a mano.
+   Di queste partite si conoscono i birilli abbattuti a ogni tiro, non quali sono rimasti: r contiene segnaposto (zeri) e la partita ha nk:1. ---- */
+const SMP={api:null,img:false};
+const GEP=`The image is a photo of a ten-pin bowling scoreboard: a monitor above the lane, a printed score sheet or an app screen. Read every player row that is visible and return, for each row, the pins knocked down by each roll, frame by frame.
+Rules: X (strike) is [10]. A spare mark "/" is 10 minus the first roll of that frame. "-" (miss) is 0. "F" (foul) is 0. Ignore split circles. Frames 1 to 9 have one roll (a strike) or two rolls. Frame 10 has two or three rolls. "cum" is the running total printed under each frame, "total" is the final score. Use null for a number you cannot read, and stop a frame at the first roll you cannot read. Never guess.
+Return only JSON, no other text: {"players":[{"name":"","frames":[[7,2],[10]],"cum":[9,29],"total":150}]} with exactly 10 entries in "frames" and in "cum" for each player. If the image is not a bowling scoreboard return {"players":[]}.`;
+const GEM={rate_limited:'Hai raggiunto il limite di utilizzo di Claude, oppure le letture sono troppo ravvicinate. Riprova più tardi, o scrivi i tiri qui sotto.',
+ session_expired:'Per leggere la foto devi accedere di nuovo a Claude. Intanto puoi scrivere i tiri qui sotto.',
+ image_rejected:"Questa foto non è stata accettata. Prova con un'altra, o scrivi i tiri qui sotto.",
+ refused:'Questa foto non è stata letta. Puoi scrivere i tiri qui sotto.',
+ invalid_json:'La lettura non è riuscita. Puoi riprovare, o scrivere i tiri qui sotto guardando la foto.',
+ off:'Da questa pagina la lettura della foto non è attiva. Scrivi i tiri qui sotto, guardando la foto.',
+ upstream_error:'La lettura non è riuscita per un problema del servizio. Puoi riprovare più tardi, o scrivere i tiri qui sotto.'};
+const GEOFF=['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed','images_unavailable'];
+/* quanti birilli può abbattere il prossimo tiro del frame f, o -1 se il frame è completo */
+const geMax=(F,f)=>{const n=F.length;if(!n)return 10;if(f<9)return n===1&&F[0]<10?10-F[0]:-1;
+ if(n===1)return F[0]===10?10:10-F[0];if(n===2)return F[0]===10?(F[1]===10?10:10-F[1]):F[0]+F[1]===10?10:-1;return -1;};
+const geTodo=e=>e.f.findIndex((F,f)=>geMax(F,f)!==-1);
+const geR=fs=>{const R=[];fs.forEach((F,f)=>{let rack=10;F.forEach(c=>{rack-=c;R.push(Array(rack).fill(0));if(!rack&&f===9)rack=10;});});return R;};
+const geMk=(F,f)=>{let rack=10;return F.map(c=>{const full=rack===10;rack-=c;const m=full?(c===10?'X':c||'-'):(!rack?'/':c||'-');if(!rack&&f===9)rack=10;return m;});};
+const geNew=()=>{const d=new Date();return{t:Date.now(),d:`${d.getDate()}/${d.getMonth()+1}`,f:ALLP.map(()=>[]),sel:0,st:'start',pl:null,rc:null,rt:null,ai:0,msg:'',ctl:null};};
+const geCalc=e=>{const k=geTodo(e);return{k,c:gmCalc(geR(k<0?e.f:e.f.slice(0,k)))};};
+const geUse=(e,p)=>{e.f=p.f.map(F=>F.slice());e.rc=p.rc;e.rt=p.rt;e.ai=1;e.pl=null;e.st='edit';const k=geTodo(e);e.sel=k<0?0:k;};
+async function geFile(file){const e=S.ge;if(!e)return;e.msg='';await phSet(e.t,file);if(S.ge!==e||!PH[e.t])return;
+ if(e.st==='start')e.st='edit';
+ if(SMP.img&&e.f.every(F=>!F.length))geRead(e);else render(true);}
+async function geRead(e){const im=PH[e.t]?phFile(PH[e.t]):null;if(!im||!SMP.api)return;e.st='busy';e.msg='';e.ai=0;e.pl=null;e.ctl=new AbortController();render(true);
+ try{const out=await SMP.api.json(GEP,{images:[im],signal:e.ctl.signal,cache:false});if(S.ge!==e||e.st!=='busy')return;e.ctl=null;
+  const pl=(out&&Array.isArray(out.players)?out.players:[]).slice(0,8).map(p=>{p=p||{};
+   const fs=ALLP.map((_,f)=>{const src=Array.isArray(p.frames)&&Array.isArray(p.frames[f])?p.frames[f]:[],F=[];for(const x of src){const m=geMax(F,f);if(m===-1||!Number.isInteger(x)||x<0||x>m)break;F.push(x);}return F;});
+   return{n:typeof p.name==='string'?p.name.trim().slice(0,24):'',f:fs,rc:Array.isArray(p.cum)?ALLP.map((_,i)=>Number.isInteger(p.cum[i])?p.cum[i]:null):null,rt:Number.isInteger(p.total)?p.total:null};}).filter(p=>p.f.some(F=>F.length));
+  if(!pl.length){e.st='edit';e.msg='In questa foto non sono riuscito a leggere i tiri. Puoi scriverli qui sotto, guardando la foto.';}
+  else if(pl.length===1)geUse(e,pl[0]);else{e.pl=pl;e.st='pick';}
+ }catch(x){if(S.ge!==e||e.st!=='busy')return;e.ctl=null;e.st='edit';const code=x&&x.code;
+  if(GEOFF.includes(code)){SMP.img=false;e.msg=GEM.off;}else if(code!=='cancelled')e.msg=GEM[code]||GEM.upstream_error;}
+ if(S.view==='ge')render(true);}
+const geBoard=(e,c,bad)=>`<div class="sb sbe">${e.f.map((F,f)=>{const cum=c.fr[f]?c.fr[f].cum:null,mk=geMk(F,f).join(' ');
+ return `<button class="${e.sel===f?'on':''}${bad===f?' bad':''}" data-act="gef" data-v="${f}" aria-pressed="${e.sel===f}" aria-label="Frame ${f+1}${F.length?': '+mk:', vuoto'}${bad===f?', da controllare':''}"><i>${f+1}${bad===f?' !':''}</i><b>${mk||'·'}</b><span>${cum!==null?cum:''}</span></button>`;}).join('')}</div>`;
+const geKeys=e=>{const f=e.sel,F=e.f[f],m=geMax(F,f),nav=`<div class="step"><div><div class="tag">Frame ${f+1} di 10</div><div class="t">${m===-1?`${geMk(F,f).join(' ')} <span class="mu">· birilli: ${F.join(', ')}</span>`:`${F.length+1}º tiro: quanti birilli sono caduti?`}</div></div><div class="pm"><button data-act="gefs" data-v="-1" aria-label="Frame precedente">‹</button><button data-act="gefs" data-v="1" aria-label="Frame successivo">›</button></div></div>`;
+ if(m===-1)return `<div class="card col">${nav}<button class="btn2" data-act="gecl">Riscrivi questo frame</button></div>`;
+ let rack=10;F.forEach(c=>{rack-=c;if(!rack)rack=10;});const full=rack===10;
+ return `<div class="card col">${nav}<div class="kp">${Array.from({length:m+1},(_,i)=>`<button data-act="gek" data-v="${i}" aria-label="${i===m?(full?'Strike':'Spare: '+i+(i===1?' birillo':' birilli')):i+(i===1?' birillo':' birilli')}">${i===m?(full?'X':'/'):i}</button>`).join('')}</div>${F.length?'<button class="lnk" data-act="gecl">Riscrivi questo frame</button>':''}</div>`;};
+function vGe(){const e=S.ge;if(!e){S.view='gst';return vGst();}const u=PH[e.t],img=u?'<img class="ph phs" src="'+u+'" alt="Foto del tabellone">':'',err=phErr?`<p class="hint w"><span>${phErr}</span></p>`:'';
+ if(e.st==='start')return `${hdr(true)}<h1>Salva una partita da una foto</h1>
+  <p>${SMP.img?'Fotografa il tabellone a fine partita. Leggo i tiri dalla foto, tu li controlli e la partita entra in record e statistiche.':'Fotografa il tabellone a fine partita. La foto resta accanto alla partita e i tiri li scrivi tu, guardandola.'}</p>
+  <button class="btn" data-act="gephoto">Carica o fai una foto</button>${err}
+  <p class="mu">${SMP.img?'Inquadra il tabellone da vicino e dritto, senza riflessi. La foto viene letta da Claude con il tuo account: la prima volta ti viene chiesto il permesso. La lettura può sbagliare, per questo dopo la controlli tu.':'Da qui non posso leggere la foto da solo. La foto resta su questo telefono.'}</p>
+  <button class="lnk" data-act="geman">Non ho una foto: scrivo i tiri a mano</button>`;
+ if(e.st==='busy')return `${hdr(true)}<h1>Leggo il tabellone</h1><p class="mu" role="status">Sto leggendo i tiri dalla foto. Può volerci fino a un minuto.</p>${img}<button class="btn2" data-act="gestop">Lascia stare: li scrivo io</button>`;
+ if(e.st==='pick')return `${hdr(true)}<h1>Quale riga è la tua?</h1><p class="mu">Nella foto ho letto ${e.pl.length} righe.</p>
+  ${e.pl.map((p,i)=>`<button class="opt" data-act="gepl" data-v="${i}"><span>${esc(p.n)||'Riga '+(i+1)}${p.rt!==null?' · '+p.rt+' punti':''}<small>${p.f.map((F,f)=>geMk(F,f).join('')||'·').join(' | ')}</small></span>${CHEV}</button>`).join('')}
+  ${img}<button class="lnk" data-act="geman">Nessuna di queste: scrivo i tiri a mano</button>`;
+ const {k,c}=geCalc(e),ok=k<0,left=e.f.filter((F,f)=>geMax(F,f)!==-1).length;
+ const bad=e.rc?e.f.findIndex((F,f)=>c.fr[f]&&c.fr[f].cum!==null&&e.rc[f]!==null&&c.fr[f].cum!==e.rc[f]):-1;
+ const chk=!ok?`<p class="mu">${left===10?'Comincia dal primo frame.':left===1?'Manca ancora un frame.':`Mancano ancora ${left} frame.`}${bad>=0?` Al frame ${bad+1} il totale è diverso da quello letto sul tabellone (${e.rc[bad]}): controlla quel frame e quello dopo.`:''}</p>`
+  :e.rt!==null&&e.rt!==c.cum?`<p class="hint w"><span><b>Il totale non coincide.</b> Sul tabellone ho letto ${e.rt}, dai tiri esce ${c.cum}.${bad>=0?` Il primo totale diverso è al frame ${bad+1}: controlla quel frame e quello dopo.`:''}</span></p>`
+  :`<p class="hint"><span><b>${c.cum} punti.</b>${e.rt!==null?' Coincide con il totale letto sul tabellone.':bad>=0?` Al frame ${bad+1} il totale è diverso da quello letto sul tabellone (${e.rc[bad]}).`:''}</span></p>`;
+ return `${hdr(true)}<div><div class="eyebrow">Partita già giocata · ${e.d}</div><h1>${e.ai?'Controlla i tiri':'Scrivi i tiri'}</h1></div>
+ ${S.gq?'<div class="hint w"><div><b>Lascio perdere questa partita?</b> I tiri scritti e la foto vanno persi.</div><div class="row"><button class="btn" data-act="gedrop">Sì, lascia perdere</button><button class="btn2" data-act="gkeep">Annulla</button></div></div>':''}
+ ${e.msg?`<p class="hint w"><span>${e.msg}</span></p>`:''}${err}
+ <p class="mu">${e.ai?'Li ho letti dalla foto e posso aver sbagliato. Confronta ogni frame con la foto prima di salvare.':u?'Tocca un frame e scrivi quanti birilli sono caduti a ogni tiro, guardando la foto.':'Tocca un frame e scrivi quanti birilli sono caduti a ogni tiro.'}</p>
+ ${img}${geBoard(e,c,bad)}${geKeys(e)}${chk}
+ <button class="btn ${ok?'':'dis'}" data-act="gesave" ${ok?'':'aria-disabled="true"'}>Salva la partita</button>
+ ${u&&SMP.img?`<button class="lnk" data-act="geread">${e.ai?'Leggi di nuovo i tiri dalla foto':'Leggi i tiri dalla foto'}</button>`:''}
+ ${u?'':'<button class="lnk" data-act="gephoto">Aggiungi la foto del tabellone</button>'}
+ <p class="foot">Di questa partita salvo i birilli caduti a ogni tiro, non quali sono rimasti in piedi.</p>`;}
+/* ---- analisi a fine partita: conti sui tiri segnati e regole già presenti nell'app. Nessun testo generato. ---- */
+function gmAna(g){const c=gmCalc(g.r),nk=!!g.nk,cards=[],pt=n=>n===1?'1 punto':n+' punti';let n=0;
+ const miss=c.sh.filter(x=>x.cv===false&&x.lv.length<10),one=miss.filter(x=>x.lv.length===1),more=miss.filter(x=>x.lv.length>1);
+ const grp=a=>{const m={};a.forEach(x=>{const k=pkey(x.lv);m[k]=(m[k]||0)+1;});return Object.keys(m).map(k=>[k,m[k]]).sort((a,b)=>b[1]-a[1]);};
+ if(one.length){const R=g.r.map(x=>x.slice()),last=one[one.length-1],gs=grp(one);let least=false;one.forEach(x=>{R[x.i+1]=[];});
+  if(last.f===9&&last.i===c.fr[9].i){R.push(Array(10).fill(0));least=true;}
+  const c2=gmCalc(R);n++;
+  cards.push(`<div class="card col"><div><div class="tag">Birilli singoli</div><div class="t">${one.length===1?'Hai lasciato in piedi un birillo solo':`Hai lasciato in piedi ${one.length} volte un birillo solo`}${nk?'':': '+gs.map(([k,q])=>art(+k)+(q>1?` ${q} volte`:'')).join(', ')}.</div>
+   <div class="mu">Chiudendol${one.length===1?'o':'i'} la partita finiva ${least?'ad almeno':'a'} ${c2.cum}: ${pt(c2.cum-c.cum)} in più.</div></div>
+   ${nk?'':gs.map(([k])=>`<button class="btn2" data-act="gsp" data-v="${k}">Come si chiude ${art(+k)}</button>`).join('')}
+   <button class="lnk" data-act="ex" data-v="stesso">Esercizio: dieci volte lo stesso spare</button></div>`);}
+ if(more.length){n++;
+  cards.push(nk?`<div class="card"><div class="tag">Spare con più birilli</div><div class="t">${more.length===1?'Uno spare con più birilli non chiuso.':more.length+' spare con più birilli non chiusi.'}</div><div class="mu">Di questa partita non so quali birilli erano, quindi non posso dirti come tirarli.</div></div>`
+   :`<div class="card"><div class="tag">Spare con più birilli</div>${grp(more).map(([k,q])=>`<div class="dy"><div style="flex:1;min-width:0"><div class="t">Birilli ${k}</div><div class="mu">Non chiuso${q>1?` ${q} volte`:''}</div></div><button class="lnk" data-act="gsp" data-v="${k}">Come chiuderlo</button></div>`).join('')}</div>`);}
+ if(!nk){const rd={leggera:0,alta:0},ws={};let cor=0;
+  c.sh.forEach(x=>{if(!x.lv.length||x.i<(g.fx||0))return;const r=readLeave(x.lv.map(P));if(r.c==='corner')cor++;if(r.w){rd[r.c]++;if(ws[r.c]!=='sx')ws[r.c]=r.w;}});
+  const L=rd.leggera,A=rd.alta,fx=g.fx?'<div class="mu">Conto solo i tiri dopo l\'ultima correzione che hai aperto durante la partita.</div>':'';
+  if(L>1&&A>1){n++;cards.push(`<div class="card col"><div><div class="tag">Tiro da strike</div><div class="t">I birilli dicono palla leggera ${L} volte e palla alta ${A} volte.</div><div class="mu">Non indicano una direzione sola. Prima di spostarti guarda perché un tiro esce diverso dall'altro.</div>${fx}</div><button class="btn2" data-act="anfix" data-v="vary">${PROB.vary.name()}</button></div>`);}
+  else if(L>1||A>1){const q=L>1?'leggera':'alta';n++;cards.push(`<div class="card col"><div><div class="tag">Tiro da strike</div><div class="t">I birilli dicono ${RDN[q]} ${rd[q]} volte.</div><div class="mu">Lo leggo dai birilli rimasti dopo il primo tiro. Si è ripetuto: conviene correggere il tiro da strike.</div>${fx}</div><button class="btn2" data-act="anfix" data-v="${ws[q]}">Correggi il tiro da strike</button></div>`);}
+  if(cor>1){n++;cards.push(`<div class="card col"><div><div class="tag">Il ${P(10)} che resta</div><div class="t">È rimasto in piedi da solo ${cor} volte.</div><div class="mu">Ha due cause diverse: con due domande ti dico cosa cambiare.</div></div><button class="btn2" data-act="anfix" data-v="corner">Capire perché resta ${art(P(10))}</button></div>`);}}
+ const fb=c.sh.length,avg=fb?(c.sh.reduce((s,x)=>s+10-x.lv.length,0)/fb).toFixed(1).replace('.',','):'0',oth=S.games.filter(x=>x.t!==g.t),ma=oth.length>1?Math.round(oth.reduce((s,x)=>s+x.sc,0)/oth.length):null,df=ma===null?0:c.cum-ma;
+ const head=`<div class="card col"><div class="tag">Analisi della partita</div><div class="nums"><div><span>Primo tiro</span><b>${avg}</b><small>birilli in media</small></div><div><span>Strike</span><b>${c.st} su ${fb}</b><small>primi tiri</small></div>${ma!==null?`<div><span>Sulla tua media</span><b>${df>0?'+':''}${df}</b><small>media ${ma}, altre ${oth.length} partite</small></div>`:''}</div>
+  ${n?'':'<div class="mu">Dai tiri di questa partita non esce un consiglio preciso: non c\'è un errore che si ripete abbastanza da cambiare qualcosa.</div>'}</div>`;
+ return{n,html:head+cards.join('')+(nk?'<p class="mu">Di questa partita conosco i birilli caduti a ogni tiro, non quali sono rimasti. Per i consigli sugli spare e sul tiro da strike segna la prossima partita tiro per tiro.</p>':'')+fbLink+'<p class="foot">Conti sui tiri segnati e regole di esempio, non ancora validate da un istruttore.</p>'};}
+function vGm(){const g=S.gm;if(!g){S.view='gst';return vGst();}const c=gmCalc(g.r),nx=c.next;
+ const undo=g.r.length&&!g.nk?`<button class="lnk" data-act="gundo">${c.done?"Correggi l'ultimo tiro":"Annulla l'ultimo tiro"}</button>`:'';
+ if(c.done){const prev=S.games.filter(x=>x.t!==g.t),best=prev.reduce((m,x)=>Math.max(m,x.sc),0),an=gmAna(g);
+  return `${hdr(true)}<div><div class="eyebrow">Partita finita · ${g.d}</div><h1>${c.cum} punti</h1></div>
+  ${prev.length&&c.cum>best?`<p class="hint w"><span><b>Nuovo record personale.</b> Prima era ${best}.</span></p>`:''}
+  ${gmBoard(c)}
+  <div class="card"><div class="nums"><div><span>Strike</span><b>${c.st}</b></div><div><span>Spare</span><b>${c.sp}</b></div><div><span>Frame aperti</span><b>${c.open}</b></div></div></div>
+  ${S.gan===g.t?an.html:`<button class="btn2" data-act="gana">Analisi della partita</button><p class="mu">${an.n?(an.n===1?'Un suggerimento':an.n+' suggerimenti')+' dai tiri di questa partita.':'Cosa dicono i tiri di questa partita.'}</p>`}
+  ${phBox(g)}
+  ${shRow()}${shBox()}
+  <div class="row"><button class="btn" data-act="gnew">Nuova partita</button><button class="btn2" data-act="go" data-v="gst">Partite e record</button></div>
+  ${undo}<button class="lnk" data-act="home">Torna al menù</button>`;}
+ const rack=nx.rack,full=rack.length===10,one=rack.length===1,sel=S.gsel.filter(p=>rack.includes(p)),n=sel.length;
+ const deck=`<div class="card deck">${[[7,8,9,10],[4,5,6],[2,3],[1]].map(rw=>`<div>${rw.map(p=>rack.includes(p)?`<button class="pn pb ${sel.includes(p)?'a':''}" data-act="gpin" data-v="${p}" aria-pressed="${sel.includes(p)}" aria-label="Birillo ${p}">${p}</button>`:`<span class="pn pb gx" aria-hidden="true">${p}</span>`).join('')}</div>`).join('')}</div>`;
+ const btns=n?`<button class="btn" data-act="gok">Segna: ${n===rack.length?(full?'nessun birillo abbattuto':one?'mancato':'restano tutti'):n===1?'resta '+art(sel[0]):'restano '+pkey(sel)}</button><button class="lnk" data-act="gclr">Togli la selezione</button>`
+  :`<div class="row"><button class="btn" data-act="gall">${full?'Strike':'Chiuso: spare'}</button><button class="btn2" data-act="gnone">${full?'Nessun birillo abbattuto':one?'Mancato':'Mancato: restano tutti'}</button></div>`;
+ return `${hdr(true)}<div><div class="eyebrow">Partita · frame ${nx.f+1} di 10 · ${nx.b+1}º tiro</div><h1>${full?'Quali birilli sono rimasti?':'E adesso, quali restano?'}</h1></div>
+ ${gmBoard(c)}
+ <p class="mu">${full?'Dopo il tiro tocca i birilli ancora in piedi, come li vedi dalla pedana. Se li hai abbattuti tutti tocca "Strike".':one?`È rimasto ${art(rack[0])}. Dopo il tiro tocca "Chiuso" oppure "Mancato".`:`Sono rimasti i birilli ${pkey(rack)}. Dopo il tiro tocca quelli ancora in piedi, oppure "Chiuso".`}</p>
+ ${deck}${btns}
+ ${full?'':`${rdBox(gmRd())}<button class="btn2" data-act="gadv">Come si chiude ${artK(rack)}?</button>`}
+ ${undo}<button class="lnk" data-act="gl" data-v="punteggio">Come si conta il punteggio</button>
+ ${S.gq?'<div class="hint w"><div><b>Abbandono questa partita?</b> I tiri segnati vanno persi.</div><div class="row"><button class="btn" data-act="gquit">Sì, abbandona</button><button class="btn2" data-act="gkeep">Annulla</button></div></div>':'<button class="lnk" data-act="gquit">Abbandona questa partita</button>'}`;}
+function vGst(){const g=S.gm,cu=g&&!g.done?gmCalc(g.r):null,s=gmStats(),top=s.lv.filter(e=>e.a>e.c).slice(0,3),vv=n=>n===1?'volta':'volte';
+ return `${hdr(true)}<h1>Partite</h1>
+ ${cu?`<div class="card col"><div><div class="tag">Partita in corso</div><div class="t">Frame ${cu.next.f+1} di 10${cu.cum?` · ${cu.cum} punti`:''}</div></div><button class="btn" data-act="go" data-v="gm">Riprendi</button></div>`:'<button class="btn" data-act="gnew">Inizia una partita</button><button class="btn2" data-act="gscan">Salva una partita da una foto</button>'}
+ <p class="mu">Dopo ogni tiro tocchi i birilli rimasti in piedi. Il punteggio lo calcola l'app (${gw('punteggio','come si conta')}), e dai birilli rimasti escono le statistiche e i consigli.</p>
+ ${s.n?`<div class="card col"><div class="tag">Record</div><div class="nums"><div><span>Partita più alta</span><b>${s.best}</b><small>${s.bd}</small></div><div><span>Media</span><b>${s.avg}</b><small>su ${s.n} ${s.n===1?'partita':'partite'}</small></div><div><span>Strike di fila</span><b>${s.row}</b><small>serie più lunga</small></div></div></div>
+ <div class="card col"><div class="tag">Primo tiro e spare</div><div class="nums"><div><span>Strike</span><b>${pct(s.st,s.fb)}</b><small>${s.st} su ${s.fb} primi tiri</small></div><div><span>Spare chiusi</span><b>${pct(s.cv,s.at)}</b><small>${s.cv} su ${s.at}</small></div><div><span>Birillo singolo</span><b>${pct(s.c1,s.a1)}</b><small>${s.c1} su ${s.a1}</small></div></div></div>
+ ${top.length?`<div class="card"><div class="tag">Gli spare che sbagli di più</div>${top.map(e=>`<div class="dy"><div style="flex:1;min-width:0"><div class="t">${e.k.includes('-')?'Birilli':'Birillo'} ${e.k}</div><div class="mu">Mancato ${e.a-e.c} ${vv(e.a-e.c)} su ${e.a}</div></div><button class="lnk" data-act="gsp" data-v="${e.k}">Come chiuderlo</button></div>`).join('')}</div>`:''}
+ ${s.rd.leggera+s.rd.alta?`<div class="card col"><div><div class="tag">Cosa dicono i birilli del tuo tiro da strike</div><div class="t">Palla leggera ${s.rd.leggera} ${vv(s.rd.leggera)}, palla alta ${s.rd.alta} ${vv(s.rd.alta)}</div><div class="mu">Contate sui birilli rimasti dopo il primo tiro. Se una delle due prevale di molto, conviene correggere la linea.</div></div><button class="btn2" data-act="go" data-v="prob">Sistemare il tiro da strike</button></div>`:''}
+ ${shRow()}${shBox()}
+ <div class="card"><div class="tag">Le tue partite</div>${S.games.map((x,i)=>`<div class="dy"><span class="pill ok">${x.sc}</span><div style="flex:1;min-width:0"><div class="t">${esc(x.d)}${x.nk?' <span class="mu">· solo punti</span>':''}</div><div class="mu">${gmLine(gmCalc(x.r))}</div></div>${PH[x.t]?`<button class="lnk" data-act="gph" data-v="${x.t}" aria-expanded="${S.gph===x.t}">Foto</button>`:''}<button class="lnk" data-act="gdel" data-v="${i}">${S.gdq===i?'Conferma: togli':'Togli'}</button></div>${S.gph===x.t&&PH[x.t]?`<img class="ph" style="margin-bottom:8px" src="${PH[x.t]}" alt="Foto della partita del ${esc(x.d)}">`:''}`).join('')}</div>
+ <p class="foot">Le letture dei birilli sono regole di esempio, non ancora validate da un istruttore.</p>`
+ :'<div class="card"><p class="mu">Dopo la prima partita qui trovi record, percentuali e gli spare che sbagli più spesso, con il consiglio per chiuderli.</p></div>'}`;}
+
+/* ---- esercizi: riassunti di guide pubblicate, ognuno con la sua fonte. Lati e numeri dei birilli sono specchiati per i mancini. ---- */
+const pcs=(...a)=>pkey(a.map(P));
+const SRC={
+ usaD:['USA Bowling (USBC), "On-Lane Drills"','https://images.bowl.com/bowl/media/legacy/internap/bowl/youthresourcecenter/usa-bowling/coaching/USA_Bowling_Coaching_QuickReference_OnLaneDrills.pdf'],
+ usbcF:['USBC, "Fundamental"','https://bowl.com/coaching/fundamental'],
+ nba3:['National Bowling Academy, "3 Training Drills to Improve Your Physical Game"','https://www.nationalbowlingacademy.com/post/3-training-drills-to-improve-your-physical-game'],
+ btm2:['Bowling This Month, "Physical Game Drills to Improve Your Bowling, Part 2"','https://www.bowlingthismonth.com/bowling-tips/physical-game-drills-to-improve-your-bowling-part-2/'],
+ bsm:['BowlerSmart, "Creating a Bowling Practice Plan"','https://www.bowlersmart.com/2018/04/11/creating-a-bowling-practice-plan-to-improve-bowling-scores-by-richard-shockley'],
+ btmS:['Bowling This Month, "Practice Those Spares"','https://bowlingthismonth.com/quick-tips/practice-those-spares'],
+ btmF:['Bowling This Month, "Practicing Fundamentals"','https://www.bowlingthismonth.com/quick-tips/practicing-fundamentals'],
+ nbaS:['National Bowling Academy, "Spare Practice with a Full Rack"','https://nationalbowlingacademy.com/video/spare-practice-full-rack-025364'],
+ nba2d:['National Bowling Academy, "Two-Handed Bowling Drills"','https://www.nationalbowlingacademy.com/post/two-handed-bowling-drills'],
+ nba2k:['National Bowling Academy, "Two-Handed Bowling: Kneel Down Drill"','https://nationalbowlingacademy.com/video/two-handed-bowling-kneel-down-drill-025322'],
+ nba2s:['National Bowling Academy, "Two-Handed Bowling: Stationary Drill"','https://nationalbowlingacademy.com/video/two-handed-bowling-stationary-drill-025324'],
+ nba2o:['National Bowling Academy, "Two-Handed Bowling: One-Step Drill"','https://nationalbowlingacademy.com/video/two-handed-bowling-one-step-drill-025326'],
+ bbFall:['bowlingball.com, "How Can I Keep From Falling Off My Bowling Shot?"','https://www.bowlingball.com/BowlVersity/how-can-i-keep-from-falling-off-my-bowling-shot'],
+ usbcSt:['USBC, "Stick the Landing"','https://bowl.com/stick-the-landing'],
+ nbaAp:['National Bowling Academy, "3 Common Problems During Bowling\'s Approach"','https://www.nationalbowlingacademy.com/post/3-common-problems-bowlings-approach'],
+ nba4:['National Bowling Academy, "4 Common Problems Bowlers Face and Solutions to Try"','https://www.nationalbowlingacademy.com/post/4-common-problems-bowlers-face-and-solutions-to-try'],
+ bbPull:['bowlingball.com, "Top Tips: Pulling The Ball"','https://www.bowlingball.com/bowlversity/top-tips-june-2012-pulling-the-ball'],
+ usbcTm:['USBC, "How Flawed Timing Impacts Accuracy and What to Do About It"','https://bowl.com/news/how-flawed-timing-impacts-accuracy-and-what-to-do-about-it'],
+ usbcDr:['USBC, "Dealing with Drift"','https://bowl.com/dealing-with-drift'],
+ nbaDr:['National Bowling Academy, "Do You Drift on the Approach?"','https://www.nationalbowlingacademy.com/post/drift-on-approach']};
+const EXC=[['gesto','Il gesto'],['mira','Mira e pista'],['spare','Spare'],['piano',"Organizzare l'allenamento"]];
+const EXI={gesto:()=>TWO()?I.hand2(S.hand):I.hand(S.hand),mira:()=>GI.frecce(),spare:()=>I.spare(),piano:()=>I.clock()};
+const EX={
+ avvio:{c:'gesto',st:1,n:'Avvio della palla',f:'Fa partire la palla e il primo passo insieme, ogni volta allo stesso modo.',q:'6 ripetizioni, senza tirare.',s:['usaD','usbcF'],h:()=>[
+  'Mettiti alla tua partenza, sui puntini della pedana.',
+  'Fai solo il primo passo, con il piede dal lato della palla, e intanto porta la palla in avanti e verso il basso.',
+  'Ferma la palla prima che il braccio sia del tutto disteso, poi torna alla partenza.',
+  "Vale per la rincorsa a quattro passi. In quella a cinque il primo passo, corto, si fa con l'altro piede."]},
+ braccio:{c:'gesto',st:1,n:'Oscillazione del braccio da fermo',f:'Fa sentire il braccio che oscilla libero e vicino al corpo, senza i passi.',s:['usaD'],h:()=>[
+  'Mettiti a pochi centimetri dalla linea di fallo e scegli una freccia come mira.',
+  "Avvia l'oscillazione. Appena la palla si muove, stacca l'altra mano e porta quel braccio di lato, all'altezza della vita.",
+  'Lascia oscillare la palla da sola, con il braccio vicino al corpo.',
+  "Rilascia la palla nel punto più basso dell'oscillazione."]},
+ fermo:{c:'gesto',st:1,n:'Tiro da fermo alla linea di fallo',f:'Allena la posizione di fine tiro e il rilascio, senza pensare ai passi.',s:['nba3'],h:()=>[
+  `Mettiti alla linea di fallo nella posizione di fine tiro: piede ${foot()} davanti con il ginocchio piegato, l'altra gamba dietro e spostata verso ${inn()}.`,
+  'Busto in avanti, braccio libero aperto di lato, palla bassa vicino alla caviglia del piede davanti.',
+  "Fai un'oscillazione corta, 20-30 centimetri in tutto.",
+  'Fai rotolare la palla piano, senza lanciarla.']},
+ passo:{c:'gesto',st:1,n:'Tiro con un passo solo',f:"Allena il tempo fra braccio e scivolata, e l'equilibrio a fine tiro.",s:['btm2','nba3'],h:()=>[
+  'Parti a circa un metro dalla linea di fallo, con i piedi vicini e la palla lungo il fianco.',
+  "Da fermo fai oscillare la palla all'indietro.",
+  'Quando la palla è nel punto più alto dietro di te, fai il passo in scivolata.',
+  'Lascia scendere la palla da sola e rilasciala. Non tirarla giù con il braccio.']},
+ trepassi:{c:'gesto',st:1,n:'Gli ultimi tre passi',f:'Allena il ritmo della fine della rincorsa: passo lungo, passo corto, scivolata.',s:['nba3'],h:()=>[
+  "Parti da fermo e avvia la palla nell'oscillazione, senza spingerla in avanti e senza lasciarla cadere.",
+  `Fai un passo lungo con il piede ${foot()}: dà alla palla il tempo di salire dietro di te.`,
+  'Busto leggermente in avanti, poi passo corto e scivolata.',
+  'Sono gli ultimi tre passi di una rincorsa a cinque.']},
+ dmgin:{c:'gesto',st:2,n:'In ginocchio alla linea di fallo',f:'Isola il rilascio: tolti i passi e il resto del corpo, resta solo quello che fanno le mani.',s:['nba2d','nba2k'],h:()=>[
+  `Mettiti in ginocchio alla linea di fallo: piede ${foot()} in avanti, rivolto ai birilli, e l'altro ginocchio appoggiato sulla pedana.`,
+  'Tieni le dita sotto la palla e scegli una mira alle frecce.',
+  'Fai oscillare la palla avanti e indietro qualche volta.',
+  'Rilasciala facendo girare le dita attorno alla palla, e lascia che le braccia proseguano il movimento.']},
+ dmfermo:{c:'gesto',st:2,n:'Da fermo in posizione di fine tiro',f:'Allena il rilascio nella posizione in cui finisci il tiro, senza i passi.',s:['nba2d','nba2s'],h:()=>[
+  `Mettiti alla linea di fallo in posizione di fine tiro: piede ${foot()} accanto alla linea, rivolto ai birilli, e l'altra gamba dietro.`,
+  'Busto piegato in avanti dalla vita. Tieni la palla con tutte e due le mani, a braccia distese.',
+  'Fai oscillare la palla avanti e indietro un paio di volte, poi lasciala rotolare via dalle dita.',
+  `Non aiutarla a curvare: se le spalle girano sopra la palla, parte subito verso ${inn()}.`]},
+ dmpasso:{c:'gesto',st:2,n:'Un passo solo, a due mani',f:"Allena l'equilibrio a fine tiro, la scivolata e il rilascio.",q:'Quattro tiri con un passo, poi uno con la rincorsa intera. Ripeti.',s:['nba2d','nba2o'],h:()=>[
+  'Parti a 60-120 centimetri dalla linea di fallo.',
+  `Piede ${foot()} in avanti, verso la mira. L'altro piede dietro, girato di circa 30 gradi. Il corpo resta aperto di lato, non dritto verso i birilli come nel tiro a una mano.`,
+  "Tieni la palla vicino al corpo, in linea con l'anca, a braccia distese e con le due mani parallele.",
+  "Spingi la palla un poco in avanti e lasciala salire indietro fino al petto, vicino all'ascella.",
+  'Quando la palla torna in avanti, fai il passo in scivolata e lasciala rotolare via dalla mano.',
+  'Resta fermo in posizione finché la palla arriva ai birilli.']},
+ dmtre:{c:'gesto',st:2,n:'Tre passi, a due mani',f:'Mette insieme i tre esercizi precedenti.',s:['nba2d'],h:()=>[
+  'Parti in piedi, a 1,5-2 metri dalla linea di fallo, con la palla come nella tua posizione di partenza.',
+  `Fai un passo verso l'esterno con il piede ${foot()}. La guida lo chiama passo perno.`,
+  'Fai un passo veloce e strisciato mentre porti la palla al petto.',
+  'Scivola e rilascia.',
+  'La guida non descrive i due passi più di così.']},
+ presa:{c:'gesto',n:'Presa rilassata',f:'Fa sentire la differenza fra una presa stretta e una rilassata, per partire con il braccio sciolto.',s:['usbcF'],h:()=>[
+  "Mettiti in posizione di partenza con la palla all'altezza della vita. Tieni il piede dal lato della palla un po' più indietro del solito, per l'equilibrio.",
+  'Stringi la palla più forte che puoi per 7-10 secondi.',
+  'Rilassa la presa e nota la differenza.']},
+ partenza:{c:'mira',n:'Trova la distanza di partenza',f:'Serve a partire sempre alla stessa distanza dalla linea di fallo.',s:['usbcF'],h:()=>[
+  'Metti i talloni sulla linea di fallo, con le spalle ai birilli.',
+  'Cammina verso il fondo della pedana per quattro passi e mezzo. Se la tua rincorsa è a cinque passi, aggiungine uno.',
+  'Girati: da lì parte la tua rincorsa.',
+  'A chi comincia la guida consiglia piedi sul listello 20 e mira alla seconda freccia dal canale.']},
+ frecce:{c:'mira',n:'Cinque tiri per freccia',f:'Mostra come reagisce la palla nelle diverse zone della pista.',q:'20 tiri.',s:['bsm'],h:()=>[
+  `Tira 5 volte mirando alla prima freccia da ${out()}.`,
+  'Poi 5 tiri alla seconda, 5 alla terza e 5 alla quarta.',
+  'Dopo ogni gruppo segnati dove è arrivata la palla sui birilli.']},
+ stesso:{c:'spare',n:'Dieci volte lo stesso spare',cnt:10,f:'Misura quanto sei affidabile su uno spare e ti dice quando passare a uno più difficile.',q:'10 tiri per ogni spare.',s:['bsm','nbaS'],h:()=>[
+  "Scegli un birillo d'angolo: il 7 o il 10.",
+  'Tiralo 10 volte di fila e conta quante volte lo abbatti.',
+  `Con 8 su 10 passa alle combinazioni ${pcs(3,6,10)}, ${pcs(2,4,5)} e ${pcs(1,2,4)}. Lì l'obiettivo è 7 su 10.`,
+  'Se la sala non può lasciare in piedi solo quei birilli, tira con tutti e dieci in piedi mirando a quel birillo.']},
+ gioco:{c:'spare',n:'Un birillo per frame',f:'Fa provare tutti e dieci i birilli in una partita sola, con i birilli tutti in piedi.',q:'Una partita: 10 frame.',s:['nbaS'],h:()=>[
+  'Il birillo a cui miri ha il numero del frame: nel primo il birillo 1, nel secondo il 2, fino al 10 nel decimo.',
+  'Primo tiro: mira a quel birillo.',
+  'Secondo tiro: se restano birilli, prova a chiudere lo spare.']},
+ lowball:{c:'spare',n:'Low ball: vince il punteggio più basso',f:"Allena la precisione sui birilli d'angolo.",q:'Una partita.',s:['btmS'],h:()=>[
+  'Gioca una partita cercando di abbattere un solo birillo per tiro.',
+  'Vince il punteggio più basso: il minimo possibile è 20.',
+  'Un tiro che non abbatte nessun birillo conta come uno strike o uno spare, quindi alza il punteggio.']},
+ ciclo:{c:'spare',n:'Giro degli spare difficili',f:"Allena, oltre ai birilli d'angolo, le due combinazioni più comuni.",q:'5 punti per ogni spare chiuso.',s:['btmS'],h:()=>[
+  `Tira a turno: il birillo ${P(7)}, il birillo ${P(10)}, il ${pcs(3,6,10)} e il washout (${pcs(1,2,10)}).`,
+  'Segna 5 punti per ogni spare chiuso.',
+  'Tieni il totale, per confrontarlo la volta dopo.']},
+ piano:{c:'piano',n:'Allenamento da 45 minuti',f:'Un piano già pronto per quando hai poco tempo.',q:'45 minuti in tutto.',s:['btmF'],h:()=>[
+  ...(TWO()?[['5 minuti:','dmgin','in ginocchio alla linea di fallo'],['5 minuti:','dmfermo','da fermo in posizione di fine tiro'],['10 minuti:','dmpasso','un passo solo, a due mani']]
+   :[['5 minuti:','avvio','avvio della palla'],['5 minuti:','braccio','oscillazione del braccio da fermo'],['10 minuti:','fermo','tiro da fermo alla linea di fallo']]),["10 minuti di birilli d'angolo:",'stesso','dieci volte lo stesso spare'],['Per finire, una partita con il punteggio:','game','segna la partita'],'Gli esercizi collegati sono quelli di questa raccolta più vicini ai nomi usati dalla guida: l\'abbinamento è mio.'+(TWO()?' La guida è scritta per chi tira a una mano: qui ho messo gli esercizi a due mani più vicini.':'')]},
+ due:{c:'piano',n:'Venti tiri, due cose sole',f:'Per cambiare qualcosa del gesto senza confondersi: al massimo due cose per allenamento.',q:'20 tiri.',s:['bsm'],h:()=>[
+  'Scegli una o due cose da curare. Esempio della guida: camminare dritto e tenere la presa leggera.',
+  'Fai 20 tiri pensando solo a quelle.',
+  'Non aggiungere altro nello stesso allenamento.']}
+};
+/* ---- disegni animati di tre esercizi (prova): personaggio di profilo costruito da pose chiave, con le gambe calcolate dai piedi perché restino a terra.
+   È un disegno indicativo fatto sul testo della guida, non una ripresa: fa fede il testo. Chi tira con la sinistra lo vede specchiato.
+   Tempi (at, rel, ret, tr, kp, cue) in frazioni del ciclo; angoli in gradi da "braccio in giù", positivi in avanti.
+   cue = [da, a, istante della palla, testo, spostamento x, spostamento y] ---- */
+const EXF={
+ braccio:{d:6.5,rel:.72,ret:.94,bv:95,tr:[.42,.58],cap:[[0,'Avvia la palla'],[.2,'Lasciala oscillare da sola'],[.62,'Rilascia nel punto più basso']],kp:[.14,.28,.76],cue:[[.68,.9,.72,'rilascio',17,-12]],
+  k:[{at:0,h:[212,92],t:10,a:[22,78],fr:[18,72],f1:[226,154.5],f2:[213,154.5]},{at:.06},{at:.14,a:[34,38],fr:[2,14],fk:.6,t:13},{at:.28,a:[-66,-70],fr:[-28,-8],t:21,h:[211,94]},{at:.42,a:[34,36],t:13,h:[212,93]},{at:.58,a:[-66,-70],t:21,h:[211,94]},{at:.72,a:[3,5],t:19,h:[213,95]},{at:.84,a:[98,112],t:13,h:[214,93]},{at:.94}]},
+ fermo:{d:6.5,rel:.68,ret:.94,bv:55,tr:[.4,.54],cap:[[0,'Posizione di fine tiro'],[.14,'Oscillazione corta: 20-30 centimetri'],[.6,'Falla rotolare piano']],kp:[.05,.27,.74],cue:[[.64,.9,.68,'rilascio',17,-10]],
+  k:[{at:0,h:[196,122],t:44,a:[0,0],fr:[-40,-25],fk:.6,f1:[222,154.5],f2:[136,154],g2:150},{at:.14},{at:.27,a:[-17,-17]},{at:.4,a:[11,11]},{at:.54,a:[-17,-17]},{at:.68,a:[3,3]},{at:.8,a:[50,62]},{at:.94}]},
+ passo:{d:6.5,rel:.66,ret:.94,bv:110,tr:[.34,.66],cap:[[0,'Da fermo, oscilla la palla indietro'],[.3,'Palla in alto: parte la scivolata'],[.56,'Lasciala scendere e rilascia']],kp:[.26,.5,.7],cue:[[.3,.48,.34,'punto più alto',0,-19],[.62,.86,.66,'rilascio',17,-8]],
+  k:[{at:0,h:[146,91],t:6,a:[0,0],fr:[4,10],f1:[150,154.5],f2:[141,154.5]},{at:.1},{at:.34,a:[-80,-84],t:20,h:[146,93],fr:[-22,-4],fk:.6},{at:.52,a:[-46,-48],t:30,h:[170,103],f1:[198,154.5]},{at:.66,a:[4,4],t:40,h:[192,116],f1:[222,154.5],f2:[134,154],g2:150},{at:.8,a:[100,112],t:36,h:[194,117],f2:[136,154]},{at:.94}]}};
+const figKeys=F=>{if(F.K)return F.K;let p={fk:1,g2:0};const K=F.k.map(k=>(p={...p,...k}));K.push({...K[0],at:1});return F.K=K;};
+const figPose=(F,q)=>{const K=figKeys(F);let i=0;while(i<K.length-2&&q>=K[i+1].at)i++;const A=K[i],B=K[i+1],u=(1-Math.cos(Math.PI*Math.min(1,Math.max(0,(q-A.at)/(B.at-A.at)))))/2,m=(x,y)=>x+(y-x)*u,p={t:m(A.t,B.t),g2:m(A.g2,B.g2),fk:m(A.fk,B.fk)};
+ ['h','a','fr','f1','f2'].forEach(k=>{p[k]=[m(A[k][0],B[k][0]),m(A[k][1],B[k][1])];});return p;};
+/* T(u,v): punto del busto, u lungo la schiena dall'anca alla spalla, v in avanti */
+const figGeo=(F,q)=>{const p=figPose(F,q),R=Math.PI/180,hx=p.h[0],hy=p.h[1],st=Math.sin(p.t*R),ct=Math.cos(p.t*R),T=(u,v)=>[hx+u*st+v*ct,hy-u*ct+v*st],
+  sg=(P,l,a)=>[P[0]+l*Math.sin(a*R),P[1]+l*Math.cos(a*R)],mx=(P,Q,k)=>[P[0]+(Q[0]-P[0])*k,P[1]+(Q[1]-P[1])*k],dot=P=>[P,[P[0]+.01,P[1]]],
+  S0=T(43,0),e1=sg(S0,26,p.a[0]),w1=sg(e1,24,p.a[1]),e2=sg(S0,24*p.fk,p.fr[0]),w2=sg(e2,22*p.fk,p.fr[1]),
+  leg=A=>{const dx=A[0]-hx,dy=A[1]-hy,d=Math.min(69.9,Math.hypot(dx,dy)),ph=Math.atan2(dy,dx),al=Math.acos(d/70);return[[hx,hy],[hx+35*Math.cos(ph-al),hy+35*Math.sin(ph-al)],[hx+d*Math.cos(ph),hy+d*Math.sin(ph)]];},
+  l1=leg(p.f1),l2=leg(p.f2),xs=[l1[2][0]-6,l1[2][0]+15,l2[2][0]-6,l2[2][0]+15];
+ return{th1:[l1[0],l1[1]],sn1:[l1[1],l1[2]],th2:[l2[0],l2[1]],sn2:[l2[1],l2[2]],lh2:[mx(l2[0],l2[1],.4),l2[1],l2[2]],k1:l1[2],k2:l2[2],g2:p.g2,
+  to:[T(-5,-4),T(-5,4),T(2,8.5),T(16,9.5),T(33,11),T(44,7.5),T(49,3),T(49,-3),T(45,-7.5),T(30,-9.5),T(12,-8.5),T(2,-8.5)],sp:[T(9,5),T(43,3.4)],pv:dot([hx,hy]),nk:[T(46,.5),T(55,1.8)],hd:T(61,2.6),ht:p.t*.45,
+  a1:[S0,e1,w1],ah1:[mx(S0,e1,.35),e1,w1],sl1:[S0,mx(S0,e1,.62)],h1:dot(sg(w1,3,p.a[1])),a2:[S0,e2,w2],sl2:[S0,mx(S0,e2,.62)],h2:dot(sg(w2,2.5,p.fr[1])),
+  bh:sg(w1,10.5,p.a[1]),ba:-p.a[1],sh:[[Math.min(...xs),163.2],[Math.max(...xs),163.2]]};};
+/* fotogramma: figura più palla (in mano fino al rilascio, poi rotola sulla pista) */
+const figFr=(F,q)=>{const g=figGeo(F,q);let c=g.bh,r=g.ba,o=1;
+ if(q>=F.rel){const g0=figGeo(F,F.rel),dt=(q-F.rel)*F.d,x=g0.bh[0]+F.bv*dt;c=[x,Math.min(150.5,g0.bh[1]+420*dt*dt)];r=g0.ba+(x-g0.bh[0])/9.5*57.3;o=q<F.ret&&x<334?1:0;}
+ return{g,b:{c,r,o,s:[[c[0]-6,163.2],[c[0]+6,163.2]]}};};
+const figN=n=>Math.round(n*10)/10,figP=a=>a.map(p=>figN(p[0])+','+figN(p[1])).join(' ');
+const FGH='<path class="fxk" d="M-8.6,-2C-9.2,-8 -4.5,-11 1,-10.6C4.8,-10.3 7.6,-8 8.2,-4.6L8.4,-2.6L10.9,1.3L8.6,2.2L8.9,4.4L7.9,5.2L8.3,6.6C8.2,9 6,10.6 3,10.4L-2,8.6C-6.5,6.5 -8.2,2.5 -8.6,-2Z"/><path class="fxhr" d="M-9.3,-1.5C-10.4,-8.8 -4.8,-12.2 1.4,-11.7C5.6,-11.4 8.6,-8.6 8.9,-5.2C5.4,-7.6 1.6,-6.9 -.6,-5C-2.4,-3 -2.2,.2 -3.6,2.8L-6.6,3.6C-8.2,2.4 -9.1,.6 -9.3,-1.5Z"/><ellipse class="fxk2" cx="-1.3" cy=".7" rx="1.7" ry="2.5"/><circle class="fxey" cx="5.5" cy="-2.1" r="1.05"/><path class="fxli" d="M6.3,5.4L8,5.1"/>';
+const FGS='<path class="fxso" d="M-5.4,-4.4L2.4,-4.8C7.6,-3.8 12.6,-1.3 14,2L14,3.4L-5.8,3.4Z"/><path class="fxsl" d="M-6,4.5L14.2,4.5"/>';
+const FGB='<circle class="fxb" r="9.5"/><circle class="fxbh" cx="-2.7" cy="-4.4" r="1.4"/><circle class="fxbh" cx="2.7" cy="-4.4" r="1.4"/><circle class="fxbh" cx="0" cy="-.8" r="1.55"/>';
+/* an(chiave) restituisce l'animazione di quell'elemento, oppure niente per il disegno fermo */
+const figEls=(f,an)=>{const g=f.g,b=f.b,P=(c,k,tag)=>`<${tag||'polyline'} class="${c}" points="${figP(g[k])}">${an(k)}</${tag||'polyline'}>`,
+  G=(xy,rot,kT,kR,inner,x)=>`<g transform="translate(${figN(xy[0])},${figN(xy[1])})"${x||''}>${an(kT)}<g transform="rotate(${figN(rot)})">${kR?an(kR):''}${inner}</g></g>`;
+ return `<g class="fxfar">${P('fxk a','a2')}${P('fxsh s','sl2')}${P('fxk hn','h2')}${G(g.k1,0,'k1T','',FGS)}${P('fxtr th','th1')}${P('fxtr sn','sn1')}</g>
+${P('fxha t','to','polygon')}${P('fxsh b','to','polygon')}${P('fxsp','sp')}${P('fxtr pv','pv')}${P('fxk n','nk')}${G(g.hd,g.ht,'hdT','hdR',FGH)}
+${P('fxha l','lh2')}${G(g.k2,g.g2,'k2T','k2R',FGS)}${P('fxtr th','th2')}${P('fxtr sn','sn2')}
+${P('fxha a','ah1')}${P('fxk a','a1')}${P('fxsh s','sl1')}${P('fxk hn','h1')}
+${G(b.c,b.r,'bT','bR',FGB,` opacity="${b.o}"`).replace('</g></g>',`</g><circle class="fxbl" cx="-3.2" cy="-3.6" r="2.7"/>${an('bo')}</g>`)}
+<rect class="fxfl" x="-90" y="160" width="340" height="22"/><rect class="fxln" x="250" y="160" width="170" height="22"/><line class="fxfo" x1="250" y1="160" x2="250" y2="182"/>
+${P('fxs','sh')}<g opacity="${b.o}">${an('bo')}<polyline class="fxs" points="${figP(b.s)}">${an('bs')}</polyline></g>`;};
+const figDur=()=>EXF[S.ex]?EXF[S.ex].d*(S.exs?2:1):1;
+const figAnim=k=>{const F=EXF[k],N=48,L=S.hand==='L',d=figDur(),fr=[],X=x=>figN(L?320-x:x);for(let i=0;i<=N;i++)fr.push(figFr(F,i/N));
+ const A=(tag,attr,vals,x)=>`<${tag} attributeName="${attr}" dur="${d}s" repeatCount="indefinite"${x||''} values="${vals.join(';')}"/>`,tr=(fn,ty)=>A('animateTransform','transform',fr.map(fn),` type="${ty}"`),xy=p=>figN(p[0])+','+figN(p[1]);
+ const an=key=>key==='hdT'?tr(f=>xy(f.g.hd),'translate'):key==='hdR'?tr(f=>figN(f.g.ht),'rotate'):key==='k1T'?tr(f=>xy(f.g.k1),'translate'):key==='k2T'?tr(f=>xy(f.g.k2),'translate'):key==='k2R'?tr(f=>figN(f.g.g2),'rotate')
+  :key==='bT'?tr(f=>xy(f.b.c),'translate'):key==='bR'?tr(f=>figN(f.b.r),'rotate'):key==='bo'?A('animate','opacity',fr.map(f=>f.b.o),' calcMode="discrete"'):key==='bs'?A('animate','points',fr.map(f=>figP(f.b.s))):A('animate','points',fr.map(f=>figP(f.g[key])));
+ const vis=(a,b)=>{const kt=[0,a,b].filter((v,j,q)=>q.indexOf(v)===j&&v<1);return kt.length>1?`<animate attributeName="opacity" dur="${d}s" repeatCount="indefinite" calcMode="discrete" keyTimes="${kt.join(';')}" values="${kt.map(v=>v>=a&&v<b?1:0).join(';')}"/>`:'';};
+ const caps=F.cap.map(([t,x],i)=>`<text class="fgc" x="160" y="-17" text-anchor="middle" opacity="${t?0:1}">${i+1}. ${x}${vis(t,i+1<F.cap.length?F.cap[i+1][0]:1)}</text>`).join('');
+ const trail=[];for(let j=0;j<=14;j++)trail.push(figGeo(F,F.tr[0]+(F.tr[1]-F.tr[0])*j/14).bh);
+ const cues=F.cue.map(([a,b,qp,tx,dx,dy])=>{const c=figFr(F,qp).b.c;return `<g class="fxq" opacity="0"><circle cx="${X(c[0])}" cy="${figN(c[1])}" r="13.5"/><text x="${X(c[0]+dx)}" y="${figN(c[1]+dy)}" text-anchor="${!dx?'middle':(dx>0)!==L?'start':'end'}">${tx}</text>${vis(a,b)}</g>`;}).join('');
+ return `<svg class="fg fgA" viewBox="0 -36 320 236" role="img" aria-label="Animazione dell'esercizio in tre momenti: ${F.cap.map(c=>c[1]).join(', ')}">${caps}
+<line class="fxp" x1="20" y1="-6" x2="300" y2="-6"/><polyline class="fxpf" points="20,-6 20,-6"><animate attributeName="points" dur="${d}s" repeatCount="indefinite" values="20,-6 20,-6;20,-6 300,-6"/></polyline>${F.kp.map(t=>`<circle class="fxpt" cx="${figN(20+280*t)}" cy="-6" r="3.2"/>`).join('')}
+<g${L?' transform="translate(320,0) scale(-1,1)"':''}><polyline class="fxt" points="${figP(trail)}"/>${figEls(fr[0],an)}</g>${cues}
+<text class="fgn" x="${X(250)}" y="194" text-anchor="middle">linea di fallo</text><text class="fgn" x="${X(40)}" y="175" text-anchor="middle">pedana</text><text class="fgn" x="${X(292)}" y="175" text-anchor="middle">pista</text></svg>`;};
+const figStrip=k=>{const F=EXF[k],L=S.hand==='L';return `<div class="fgs">${F.kp.map((q,i)=>{const f=figFr(F,q),x0=Math.round(f.g.pv[0][0]-96);
+ return `<div><svg class="fg" viewBox="${x0} -12 184 194" role="img" aria-label="Momento ${i+1}"><g${L?` transform="translate(${2*x0+184},0) scale(-1,1)"`:''}>${figEls(f,()=>'')}</g></svg><span>${i+1}. ${F.cap[i][1]}</span></div>`;}).join('')}</div>`;};
+const figOn=()=>S.exa===null?!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches):S.exa;
+/* dopo ogni ridisegno della schermata l'animazione riparte da capo: qui la riporto all'istante e allo stato (pausa) scelti */
+function figSync(){const s=document.querySelector('svg.fgA');if(!s||!s.setCurrentTime)return;try{if(S.ext)s.setCurrentTime(S.ext);if(S.exp)s.pauseAnimations();else S.ext=0;}catch(e){}}
+const figNow=()=>{const s=document.querySelector('svg.fgA'),d=figDur();try{return s&&s.getCurrentTime?s.getCurrentTime()%d:0;}catch(e){return 0;}};
+/* 3D: il contenitore b3st lo riempie B3D.sync dopo ogni disegno della schermata; i tasti data-b3 li gestisce il motore 3D, senza ridisegnare l'app */
+const fig3Card=k=>`<div class="card col"><div class="tag">Guarda il movimento</div><div class="g3st" id="b3st"></div>
+ <div class="g3g"><span>Vista</span><div class="sw g3v" role="group" aria-label="Angolazione">${[['lato','Di lato'],['dietro','Da dietro'],['fronte','Di fronte'],['alto',"Dall'alto"]].map(v=>`<button data-b3="v:${v[0]}" aria-pressed="${v[0]==='lato'}">${v[1]}</button>`).join('')}</div></div>
+ <div class="g3g"><span>Fermati su un momento</span><div class="fgk"><div class="sw" role="group" aria-label="Fermati su un momento">${[0,1,2].map(i=>`<button data-b3="k:${i}" aria-pressed="false" aria-label="Momento ${i+1}">${i+1}</button>`).join('')}</div><button class="btn2" data-b3="play">Pausa</button><button class="btn2" data-b3="slow" aria-pressed="false">Lento</button></div></div>
+ <div class="mu">Trascina la scena con un dito per girarla. Manichino indicativo${S.hand==='L'?', per chi tira con la sinistra':''}: il movimento è impostato a mano sul testo qui sotto, non registrato da un giocatore.</div></div>`;
+const figCard=k=>{if(window.B3D&&B3D.ok(k))return fig3Card(k);const on=figOn(),F=EXF[k];return `<div class="card col"><div class="tag">Guarda il movimento</div>${on?figAnim(k):figStrip(k)}
+ ${on?`<div class="fgk"><div class="sw" role="group" aria-label="Fermati su un momento">${F.cap.map((c,i)=>`<button data-act="figk" data-v="${i}" aria-pressed="${S.exk===i}" aria-label="Momento ${i+1}: ${c[1]}">${i+1}</button>`).join('')}</div><button class="btn2" data-act="figp">${S.exp?'Riparti':'Pausa'}</button><button class="btn2" data-act="figs" aria-pressed="${!!S.exs}">${S.exs?'Normale':'Lento'}</button></div>`:''}
+ <div class="mu">${on?'Con 1, 2 e 3 fermi il disegno su un momento. ':''}Disegno indicativo, visto di lato${S.hand==='L'?' per chi tira con la sinistra':''}. Per i dettagli vale il testo qui sotto.</div>
+ <button class="lnk" data-act="exan">${on?'Mostra i tre momenti affiancati':'Guarda il movimento animato'}</button></div>`;};
+function vExl(){return `${hdr(true)}<h1>Esercizi</h1><p class="mu">Da provare in allenamento, non in partita. Ogni scheda riassume una guida pubblicata e ne indica la fonte.</p>
+ ${EXC.map(([c,t])=>`<h2>${t}</h2>${c==='gesto'&&TWO()?'<p class="mu">Qui trovi gli esercizi per il tiro a due mani. Quelli scritti per una mano non sono in elenco.</p>':''}${Object.keys(EX).filter(k=>EX[k].c===c&&(!EX[k].st||EX[k].st===S.sty)).map(k=>opt('ex',k,EX[k].n,EX[k].f,0,EXI[c]())).join('')}`).join('')}
+ <p class="foot">Riassunti di guide pubblicate, non ancora rivisti da un istruttore.</p>`;}
+function vExd(){const e=EX[S.ex];if(!e){S.view='exl';return vExl();}const x=S.exc,n=x?x.n:0;
+ const steps=e.h().map(s=>Array.isArray(s)?`<li>${s[0]} <button class="gl" data-act="${s[1]==='game'?'game':'ex'}" data-v="${s[1]}">${s[2]}</button></li>`:`<li>${s}</li>`).join('');
+ const cnt=!e.cnt?'':`<div class="card col"><div class="tag">Conta i tiri</div>${n>=e.cnt?`<div><div class="big">${x.ok} su ${e.cnt}</div><div class="mu">${x.ok>=8?"Sei all'obiettivo di 8 su 10: puoi passare a una combinazione.":"L'obiettivo è 8 su 10: resta ancora su questo spare."}</div></div><div class="row"><button class="btn" data-act="exsave">Salva nel diario</button><button class="btn2" data-act="exrst">Ricomincia</button></div>`
+  :`<div><div class="big">Tiro ${n+1} di ${e.cnt}</div><div class="mu">${n?`Finora ${x.ok} su ${n}.`:'Tocca dopo ogni tiro.'}</div></div><div class="row"><button class="btn" data-act="exhit" data-v="1">Abbattuto</button><button class="btn2" data-act="exhit" data-v="0">Mancato</button></div>${n?'<button class="lnk" data-act="exrst">Ricomincia</button>':''}`}</div>`;
+ return `${hdr(true)}<div><div class="eyebrow">Esercizio · ${EXC.find(c=>c[0]===e.c)[1]}</div><h1>${e.n}</h1></div><p>${e.f}</p>${e.st&&e.st!==S.sty?`<p class="hint"><span>Questo esercizio è scritto per chi tira a ${e.st===2?'due mani':'una mano'}.</span></p>`:''}
+ ${EXF[S.ex]||(window.B3D&&B3D.ok(S.ex))?figCard(S.ex):''}<div class="card col"><div class="tag">Come si fa</div><ol class="ol">${steps}</ol></div>
+ ${e.q?`<div class="card"><div class="tag">Quanto</div><div class="t">${e.q}</div></div>`:''}${cnt}
+ <div class="card col"><div class="tag">${e.s.length>1?'Fonti':'Fonte'}</div>${e.s.map(k=>`<div><div class="mu">${SRC[k][0]}</div><a class="lnk" href="${SRC[k][1]}" target="_blank" rel="noopener">Apri la guida, in inglese</a></div>`).join('')}</div>
+ ${fbLink}<p class="foot">Riassunto di una guida pubblicata, non ancora rivisto da un istruttore.</p>`;}
+const VIEWS={ge:vGe,gm:vGm,gst:vGst,exl:vExl,exd:vExd,fbl:vFb,setup:vSetup,home:vHome,prob:vProb,diary:vDiary,prof:vProf,gloss:vGloss,lay:vLay,line:vLine,q:vQ,look:vLook,sol:vSol,sp:vSp,spsol:vSpSol,endday:vEnd};
+function render(top){const sheet=S.gl&&G[S.gl]?`<div class="sheet" role="dialog" aria-label="Spiegazione"><div class="gi">${gico(S.gl)}<div><div class="t">${G[S.gl][0]}</div><p class="mu">${gdef(S.gl)}</p></div></div><button class="btn2" data-act="glx">Ho capito</button></div>`:'';
+ document.getElementById('app').innerHTML=VIEWS[S.view]()+sheet+fbSheet();if(top)window.scrollTo(0,0);if(S.view==='exd')figSync();if(window.B3D)B3D.sync(S.view==='exd'?S.ex:null,S.hand);}
+function go(v){S.view=v;S.gl=null;S.wipe=false;S.fbs=null;S.fbc='';S.gq=false;S.gdq=null;S.shc='';S.gph=null;phErr='';render(true);}
+const moveSum=(df,dt)=>`Piedi ${df?mvTxt(df):'fermi'}, mira ${dt?mvTxt(dt):'uguale'}`;
+/* Una correzione che ha funzionato sposta la linea di oggi, mai l'abituale. Se ha funzionato l'alternativa, conta la linea dell'alternativa. */
+function logDiary(ok){const r=S.res,b=r.before,pb=S.phase===1&&r.pb,a=pb?{...r.after,start:clamp(r.after.start+pb[0],1,39),arrive:clamp(r.after.arrive+pb[0],1,39),target:clamp(r.after.target+pb[1],1,39)}:r.after;
+ const df=a.start-b.start,dt=a.target-b.target,ch=!!(df||dt||a.orient!==b.orient),x=ch?moveSum(df,dt)+(a.orient!==b.orient?', piedi '+orientTxt(a):''):'Linea invariata';
+ S.diary.unshift({p:PROB[S.prob].name(),ok,x});S.diary=S.diary.slice(0,10);
+ if(ok&&ch){S.today=same(a,S.line)?null:{...a};S.todayAt=DAY;}save();return ok&&ch?(S.today?'today':'backbase'):'logged';}
+/* Modifica della linea aperta nella scheda: l'abituale, oppure quella di oggi (creata al primo cambio). */
+function edit(fn){const run=()=>fn(ed());if(S.fresh&&S.today&&S.lineEdit==='base')carry(run);else run();if(S.lineEdit==='base')S.own=true;save();render();}
+function fromLine(){const b=S.back;S.lineEdit='base';S.fresh=false;if(!S.own)carry(()=>{S.line=defLine();});if(S.today&&same(S.today,S.line))S.today=null;save();if(b==='sol'&&S.prob){S.res=S.res&&S.res.info?S.res:(S.res&&S.res.end?noObs():solve());S.phase=0;go('sol');}else if(b==='spsol'&&S.sp.length){S.res=solveSpare();go('spsol');}else go(b==='sp'||b==='prof'?b:'home');}
+function suDone(v){S.setup=true;S.su=0;save();if(v==='set'){S.back='home';S.fresh=!S.own;S.lineEdit='base';preLine();save();go('line');}else go('home');}
+
+document.getElementById('app').addEventListener('click',e=>{
+ const svg=e.target.closest('svg[data-lane]');
+ if(svg&&S.view==='line'){const rc=svg.getBoundingClientRect(),vx=(e.clientX-rc.left)/rc.width*359,vy=(e.clientY-rc.top)/rc.height*ZH;
+  const b=clamp(Math.round(RH()?(355-vx)/9+.5:(vx-4)/9+.5),1,39),d=19-(vy-4)/(ZH-18)*34;
+  if(d>2)edit(l=>{l.target=b;});else if(d<-1)edit(l=>{const b2=clamp(b-1,1,39),dl=b2-l.start;l.start=b2;l.arrive=clamp(l.arrive+dl,1,39);});
+  return;}
+ const el=e.target.closest('[data-act]');if(!el||el.getAttribute('aria-disabled')==='true')return;const act=el.dataset.act,v=el.dataset.v;
+ if(act==='gl'){S.gl=v;render();return;}
+ if(act==='glx'){S.gl=null;render();return;}
+ S.gl=null;
+ if(act==='fb'){S.fbs={miss:v==='miss',ctx:v==='miss'?{s:'Consiglio che manca',d:''}:fbCtx(),why:'',txt:''};render();return;}
+ if(act==='fbw'){if(S.fbs&&!S.fbs.done){S.fbs.why=S.fbs.why===v?'':v;render();}return;}
+ if(act==='fbx'){S.fbs=null;render();return;}
+ if(act==='fbsave'){const f=S.fbs;if(!f||f.done)return;const x=f.txt.trim().slice(0,300),d=new Date();if(!(x||(!f.miss&&f.why)))return;
+  S.fb.unshift({t:`${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`,s:f.ctx.s,d:f.ctx.d,w:f.miss?'':(FBW[f.why]||''),x,p:fbProf()});S.fb=S.fb.slice(0,40);save();S.fbs={done:true};render();return;}
+ if(act==='fbdel'){S.fb.splice(+v,1);S.fbc='';save();render();return;}
+ if(act==='fbcopy'){const t=fbText(),fin=ok=>{S.fbc=ok?'ok':'man';if(S.view==='fbl')render();};try{navigator.clipboard.writeText(t).then(()=>fin(true),()=>fin(false));}catch(e){fin(false);}return;}
+ if(act==='fbshare'){try{navigator.share({text:fbText()}).catch(()=>{});}catch(e){}return;}
+ if(act==='fbwipe'){if(S.fbc==='del'){S.fb=[];S.fbc='';save();}else S.fbc='del';render();return;}
+ if(act==='fbkeep'){S.fbc='';render();return;}
+ S.fbs=null;
+ if(act==='su'){const id=SU()[S.su];
+  if(id==='hand')S.hand=v;
+  else if(id==='sty')S.sty=v==='2'?2:1;
+  else if(id==='ball'){if(v==='boh'){S.ball='str';S.ballKnown=false;}else{S.ball=v;S.ballKnown=true;}if(!S.own)carry(()=>{S.line=defLine();});}
+  else if(id==='spb')S.spb=v==='1';
+  else if(id==='or')setOr(orV(v));
+  else{suDone(v);return;}
+  S.su++;save();render(true);}
+ else if(act==='skip'){suDone('no');}
+ else if(act==='resetup'){S.setup=false;S.su=0;save();go('setup');}
+ else if(act==='wipe'){S.wipe=true;render();}
+ else if(act==='wipeno'){S.wipe=false;render();}
+ else if(act==='wipeok'){const fb=S.fb;Object.assign(S,INIT());S.fb=fb;for(const k in PH)delete PH[k];phTx('readwrite',s=>s.clear());save();go('setup');}
+ else if(act==='go'){if(v==='prof')S.profBack=S.view;S.note='';go(v);}
+ else if(act==='hand'){S.hand=v;save();render();}
+ else if(act==='ball'){S.ball=v;S.ballKnown=true;if(!S.own)carry(()=>{S.line=defLine();});save();render();}
+ else if(act==='spb'){S.spb=v==='1';save();render();}
+ else if(act==='sty'){S.sty=v==='2'?2:1;save();render();}
+ else if(act==='prob'){S.prob=v;S.step=0;S.ans={};S.phase=0;S.note='';if(v==='corner'&&S.ball==='str'){S.res={info:true};go('sol');}else if(!PROB[v].qs.length){S.res=solve();go('sol');}else go('q');}
+ else if(act==='line'){S.back=S.view;S.note='';S.fresh=!S.own;S.lineEdit=S.own&&v!=='base'&&(v==='today'||(S.today&&S.view!=='home'))?'today':'base';preLine();go('line');}
+ else if(act==='ltab'){S.lineEdit=v;render();}
+ else if(act==='treset'){S.today=null;save();render();}
+ else if(act==='lineok'){if(S.lineEdit==='base')S.own=true;save();fromLine();}
+ else if(act==='fix'){edit(l=>{l.target=+v;});}
+ else if(act==='st'){const k=el.dataset.k,dv=+v;edit(l=>{if(k==='start'){const n=clamp(l.start+dv,1,39);l.arrive=clamp(l.arrive+n-l.start,1,39);l.start=n;}else l[k]=clamp(l[k]+dv,1,39);});}
+ else if(act==='or'){const o=orV(v);edit(l=>{l.orient=o;l.arrive=clamp(l.start+o*3,1,39);});}
+ else if(act==='por'){setOr(orV(v));save();render();}
+ else if(act==='sor'){const r=S.res,a=r.after,o=orV(v);a.orient=o;a.start=!r.spare&&o===r.before.orient?clamp(r.before.start+r.df,1,39):clamp(a.arrive-o*3,1,39);render();}
+ else if(act==='bpo'){const est=chkLine(edv()).bp;S.bpo=S.bpo==null?clamp(Math.round(est?est.x:8),1,39):clamp(S.bpo+ +v,1,39);save();render();}
+ else if(act==='bpox'){S.bpo=null;save();render();}
+ else if(act==='spare'){S.sp=[];S.spFrom='';S.note='';go('sp');}
+ else if(act==='sp10'){S.sp=[P(10)];S.spFrom='';S.res=solveSpare();go('spsol');}
+ else if(act==='pin'){const n=+v,i=S.sp.indexOf(n);if(i<0)S.sp.push(n);else S.sp.splice(i,1);render();}
+ else if(act==='spgo'){S.res=solveSpare();go('spsol');}
+ else if(act==='spok'||act==='spko'){const r=S.res,ok=act==='spok',a=r.after,keep=ok&&r.abs&&!r.saved;
+  const x=r.abs?`Piedi ${ftName(a.start)}, mira ${tgName(a.target)}`:moveSum(a.start-r.before.start,0);
+  const rd=r.rd,rc=rd&&rd.w?rd.c:'';S.rdl=rd||null;S.rdn=rc?rdCount(rc):0;
+  S.diary.unshift({p:'Spare '+S.sp.slice().sort((x,y)=>x-y).join('-'),ok,lab:ok?'Chiuso':'Mancato',x:x+(rc?' · birilli: '+RDN[rc]:''),sp:1,d:DAY,rd:rc});S.diary=S.diary.slice(0,10);
+  if(keep)S.spl[S.hand+r.key]={...a};
+  /* aperto dalla partita: "Chiuso" segna lo spare sul tabellone, "Mancato" torna a chiedere quali birilli restano */
+  const cg=S.gm&&!S.gm.done?gmCalc(S.gm.r):null,fg=S.spFrom==='gm'&&cg&&cg.next&&pkey(cg.next.rack)===pkey(S.sp);S.spFrom='';
+  if(fg){if(ok)gmRoll([]);else save();S.note='';go('gm');return;}
+  save();S.note=keep?'splsaved':'spsaved';go('home');}
+ else if(act==='spldel'){delete S.spl[S.hand+S.res.key];save();S.res=solveSpare();render(true);}
+ else if(act==='rdfix'){const rd=S.view==='home'?S.rdl:S.view==='gm'?gmRd():S.res&&S.res.rd;if(!rd||!rd.c)return;if(S.view==='gm'&&S.gm){S.gm.fx=S.gm.r.length;save();}S.note='';S.phase=0;S.ans={};S.step=0;
+  if(rd.c==='corner'){S.prob='corner';go('q');}
+  else{S.prob='pocket';if(rd.w){S.ans={where:rd.w};S.step=1;}go('q');}}
+ else if(act==='layv'){S.layBack=S.view;go('lay');}
+ else if(act==='lay'){S.lay=clamp(S.lay+ +v,4,10);save();render();}
+ else if(act==='lay6'){S.lay=6;save();go(S.layBack||'home');}
+ else if(act==='adv'){S.adv=!S.adv;save();render();}
+ else if(act==='ans'){const qs=PROB[S.prob].qs,q=qs[S.step];if(v==='boh'&&q.id!=='aim'){S.lookQ=q.id;go('look');return;}
+  S.ans[q.id]=v;S.step++;if(S.step>=qs.length){S.res=solve();S.phase=0;go('sol');}else go('q');}
+ else if(act==='seen'){go('q');}
+ else if(act==='cant'){S.res=noObs();S.phase=0;S.step=PROB[S.prob].qs.length;go('sol');}
+ else if(act==='ok'){S.note=logDiary(true);go('home');}
+ else if(act==='ko'){if(S.phase===0){S.phase=1;render(true);}else{logDiary(false);S.phase=2;render(true);}}
+ else if(act==='endkeep'||act==='enddrop'||act==='endlater'){const t=S.today;S.note='';
+  if(t&&act==='endlater')S.todayAt=DAY;
+  else if(t){const keep=act==='endkeep';S.diary.unshift({p:'Linea di oggi',ok:keep,lab:keep?'Tenuta':'Scartata',x:todayMv()});S.diary=S.diary.slice(0,10);if(keep)S.line={...t};S.today=null;S.note=keep?'kept':'dropped';}
+  save();go('home');}
+ else if(act==='game'){S.note='';go(S.gm&&!S.gm.done?'gm':'gst');}
+ else if(act==='gnew'){const d=new Date();S.gm={t:Date.now(),d:`${d.getDate()}/${d.getMonth()+1}`,r:[]};S.gsel=[];save();go('gm');}
+ else if(act==='gpin'){const n=+v,i=S.gsel.indexOf(n);if(i<0)S.gsel.push(n);else S.gsel.splice(i,1);render();}
+ else if(act==='gclr'){S.gsel=[];render();}
+ else if(act==='gok'||act==='gall'||act==='gnone'){const c=S.gm&&!S.gm.done?gmCalc(S.gm.r):null;if(!c||!c.next)return;const rack=c.next.rack,s=act==='gall'?[]:act==='gnone'?rack.slice():S.gsel.filter(p=>rack.includes(p));if(act==='gok'&&!s.length)return;S.gq=false;gmRoll(s);render(true);}
+ else if(act==='gundo'){const g=S.gm;if(!g||!g.r.length)return;g.r.pop();if(g.done){g.done=false;S.games=S.games.filter(x=>x.t!==g.t);}if(g.fx>g.r.length)g.fx=g.r.length;S.gsel=[];S.shc='';save();render();}
+ else if(act==='gquit'){if(S.gq){if(PH[S.gm.t])phDel(S.gm.t);S.gm=null;save();go('gst');}else{S.gq=true;render();}}
+ else if(act==='gkeep'){S.gq=false;render();}
+ else if(act==='gadv'){const c=S.gm&&!S.gm.done?gmCalc(S.gm.r):null;if(!c||!c.next||c.next.rack.length===10)return;S.sp=c.next.rack.slice();S.spFrom='gm';S.res=solveSpare();go('spsol');}
+ else if(act==='gsp'){S.sp=v.split('-').map(Number);S.spFrom=S.view==='gm'?'gan':'gst';S.res=solveSpare();go('spsol');}
+ else if(act==='gdel'){if(S.gdq===+v){const x=S.games[+v];if(x&&PH[x.t]&&!(S.gm&&S.gm.t===x.t&&!S.gm.done))phDel(x.t);S.games.splice(+v,1);S.gdq=null;S.gph=null;save();}else S.gdq=+v;S.shc='';render();}
+ else if(act==='gphoto'){S.gpt=v?+v:(S.gm?S.gm.t:null);const f=document.getElementById('gfile');if(f&&S.gpt){phErr='';f.value='';f.click();}}
+ else if(act==='gphdel'){if(S.gm)phDel(S.gm.t);phErr='';render();}
+ else if(act==='gph'){S.gph=S.gph===+v?null:+v;render();}
+ else if(act==='shcopy'){const t=shText(),w=S.view,fin=ok=>{S.shc=ok?'ok':'man';if(S.view===w)render();};try{navigator.clipboard.writeText(t).then(()=>fin(true),()=>fin(false));}catch(e){fin(false);}}
+ else if(act==='shshare'){const d={text:shText()},u=S.view==='gm'&&S.gm?PH[S.gm.t]:null;try{const f=u?phFile(u):null;if(f&&navigator.canShare&&navigator.canShare({files:[f]}))d.files=[f];navigator.share(d).catch(()=>{});}catch(e){}}
+ else if(act==='ex'){S.exFrom=S.view==='gm'?'gm':S.view==='sol'?'sol':S.view==='exd'?S.exFrom:'';S.ex=v;S.exc=null;S.exp=false;S.ext=0;S.exk=null;go('exd');}
+ else if(act==='exhit'){const e=EX[S.ex];if(!e||!e.cnt)return;const x=S.exc||(S.exc={n:0,ok:0});if(x.n<e.cnt){x.n++;if(v==='1')x.ok++;}render();}
+ else if(act==='exrst'){S.exc=null;render();}
+ else if(act==='exan'){S.exa=!figOn();S.exp=false;S.ext=0;S.exk=null;render();}
+ else if(act==='figk'){const F=EXF[S.ex];if(!F)return;S.exk=+v;S.exp=true;S.ext=Math.max(.01,F.kp[+v]*figDur());render();}
+ else if(act==='figp'){if(S.exp){S.exp=false;S.exk=null;}else{S.ext=Math.max(.01,figNow());S.exp=true;}render();}
+ else if(act==='figs'){const d0=figDur(),t=S.exp?S.ext:figNow();S.exs=!S.exs;S.ext=Math.max(.01,t/d0*figDur());render();}
+ else if(act==='exsave'){const e=EX[S.ex],x=S.exc;if(!e||!x)return;S.diary.unshift({p:'Esercizio: '+e.n.toLowerCase(),ok:x.ok>=8,lab:`${x.ok} su ${e.cnt}`,x:'Obiettivo: 8 su 10',ex:1});S.diary=S.diary.slice(0,10);S.exc=null;save();S.note='logged';go('home');}
+ else if(act==='gana'){S.gan=S.gm?S.gm.t:null;render();}
+ else if(act==='anfix'){S.note='';S.phase=0;S.ans={};S.step=0;if(v==='corner'||v==='vary'){S.prob=v;go('q');}else{S.prob='pocket';S.ans={where:v};S.step=1;go('q');}}
+ else if(act==='gscan'){S.ge=geNew();phErr='';go('ge');}
+ else if(act==='gephoto'){const e=S.ge,f=document.getElementById('gfile');if(!e||!f)return;S.gpt=e.t;phErr='';f.value='';f.click();}
+ else if(act==='geman'){const e=S.ge;if(!e)return;e.st='edit';e.ai=0;e.pl=null;e.msg='';render(true);}
+ else if(act==='gestop'){const e=S.ge;if(!e)return;const q=e.ctl;e.ctl=null;e.st='edit';e.ai=0;if(q)q.abort();render(true);}
+ else if(act==='gepl'){const e=S.ge,p=e&&e.pl&&e.pl[+v];if(p){geUse(e,p);render(true);}}
+ else if(act==='gef'){const e=S.ge;if(e){e.sel=+v;render();}}
+ else if(act==='gefs'){const e=S.ge;if(e){e.sel=Math.max(0,Math.min(9,e.sel+(+v)));render();}}
+ else if(act==='gek'){const e=S.ge;if(!e)return;const F=e.f[e.sel],m=geMax(F,e.sel),n=+v;if(m===-1||!(n>=0&&n<=m))return;F.push(n);
+  if(geMax(F,e.sel)===-1){let nx=e.f.findIndex((G,f)=>f>e.sel&&geMax(G,f)!==-1);if(nx<0)nx=geTodo(e);if(nx>=0)e.sel=nx;}render();}
+ else if(act==='gecl'){const e=S.ge;if(e){e.f[e.sel]=[];render();}}
+ else if(act==='geread'){const e=S.ge;if(e&&PH[e.t]&&SMP.img)geRead(e);}
+ else if(act==='gedrop'){const e=S.ge;if(e){if(e.ctl)e.ctl.abort();phDel(e.t);}S.ge=null;go('gst');}
+ else if(act==='gesave'){const e=S.ge;if(!e||geTodo(e)>=0)return;const r=geR(e.f),g={t:e.t,d:e.d,r,nk:1,...(PH[e.t]?{ph:1}:{})};
+  S.games=S.games.filter(x=>x.t!==g.t);S.games.unshift({...g,sc:gmCalc(r).cum,r:r.map(x=>x.slice())});S.games=S.games.slice(0,50);S.gm={...g,done:true};S.ge=null;S.gan=null;save();go('gm');}
+ else if(act==='home'){S.note='';go('home');}
+ else if(act==='back'){const w=S.view;
+  if(w==='setup'){S.su=Math.max(0,S.su-1);render(true);}
+  else if(w==='lay')go(S.layBack||'home');
+  else if(w==='fbl')go('prof');
+  else if(w==='prof')go(S.profBack==='sp'?'sp':'home');
+  else if(w==='line')fromLine();
+  else if(w==='spsol')go(S.spFrom==='gm'&&S.gm&&!S.gm.done?'gm':S.spFrom==='gst'?'gst':S.spFrom==='gan'&&S.gm?'gm':'sp');
+  else if(w==='exd')go(S.exFrom==='sol'&&S.res&&S.prob?'sol':S.exFrom==='gm'&&S.gm&&S.gm.done?'gm':'exl');
+  else if(w==='ge'){const e=S.ge;if(e&&e.st!=='start'&&!S.gq&&(PH[e.t]||e.f.some(F=>F.length))){S.gq=true;render(true);}else{if(e){if(e.ctl)e.ctl.abort();phDel(e.t);}S.ge=null;go('gst');}}
+  else if(w==='gst')go('home');
+  else if(w==='q'){if(S.step>0){S.step--;go('q');}else go('prob');}
+  else if(w==='look')go('q');
+  else if(w==='sol'){if(S.phase===1){S.phase=0;render(true);}else if(S.res&&(S.res.info||!PROB[S.prob].qs.length))go('prob');else{S.step=Math.max(0,PROB[S.prob].qs.length-1);go('q');}}
+  else go('home');}
+});
+document.getElementById('app').addEventListener('input',e=>{const f=S.fbs;if(e.target.id!=='fbt'||!f||f.done)return;f.txt=e.target.value.slice(0,300);
+ const b=document.querySelector('[data-act="fbsave"]'),ok=!!(f.txt.trim()||(!f.miss&&f.why));if(b){b.classList.toggle('dis',!ok);if(ok)b.removeAttribute('aria-disabled');else b.setAttribute('aria-disabled','true');}});
+document.getElementById('gfile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f||!S.gpt)return;if(S.view==='ge'&&S.ge&&S.ge.t===S.gpt)geFile(f);else phSet(S.gpt,f);});
+render();
+(async()=>{const db=await new Promise(res=>{try{const q=indexedDB.open('bowl-foto',1);q.onupgradeneeded=()=>q.result.createObjectStore('f');q.onsuccess=()=>res(q.result);q.onerror=q.onblocked=()=>res(null);}catch(e){res(null);}});
+ if(!db){phMem=true;return;}phDb=db;const ks=await phTx('readonly',s=>s.getAllKeys()),vs=await phTx('readonly',s=>s.getAll());if(!Array.isArray(ks)||!Array.isArray(vs))return;
+ const live=new Set(S.games.map(x=>x.t));if(S.gm)live.add(S.gm.t);if(S.ge)live.add(S.ge.t);
+ ks.forEach((k,i)=>{if(live.has(k)){if(!PH[k])PH[k]=vs[i];}else phTx('readwrite',s=>s.delete(k));});
+ if(ks.length&&(S.view==='gm'||S.view==='gst'))render();})();
+/* lettura del tabellone: solo dove la pagina può chiedere a Claude di guardare un'immagine. Altrove SMP.img resta falso e i tiri si scrivono a mano. */
+if(window.claude&&typeof window.claude.use==='function')Promise.resolve(window.claude.use('sample')).then(async s=>{if(!s||typeof s.json!=='function')return;let l=null;try{l=await s.limits();}catch(e){}SMP.api=s;SMP.img=!!(l&&l.images);if(SMP.img&&S.view==='ge')render();}).catch(()=>{});
+</script>
+<script src="3d.js" defer></script>
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});</script>
+</body>
+</html>
