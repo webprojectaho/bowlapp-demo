@@ -1,6 +1,6 @@
 // Service worker: tiene l'app in cache così si apre anche senza rete (in sala il segnale spesso manca).
 // Strategia: risponde subito dalla cache e intanto scarica la versione nuova, che si vede alla riapertura.
-const V = 'bowl-0.10.0-d09f9a25';
+const V = 'bowl-0.10.3-ccddfa33';
 const FONT = 'bowl-fonts';
 const SHELL = ['./', 'index.html', '3d.js', 'manifest.webmanifest', 'icon.svg', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-512-maskable.png'];
 

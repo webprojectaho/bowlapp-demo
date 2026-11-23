@@ -15,7 +15,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <style>body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<script>window.BOWL_LABEL='Versione di prova 0.10.0';</script>
+<script>window.BOWL_LABEL='Versione di prova 0.10.3';window.BOWL_SEGNALA="https://script.google.com/macros/s/AKfycbwBBzbp5e7qg9R0Mg9t1G2xJF5DZ908WLb_xh5n27ulsMbANk_QaVS2FGCG_8lAl5ly/exec";</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
 <style>
 /* Layout: una colonna da telefono, una schermata per volta, azione principale in fondo alla schermata. */
@@ -41,7 +41,7 @@
   color-scheme:light}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--tx);font-family:var(--f-b);font-size:15px;line-height:1.4}
-.app{max-width:440px;margin:0 auto;padding-block:16px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
+.app{max-width:440px;margin:0 auto;padding-block:16px calc(92px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
 h1{font-family:var(--f-d);font-size:24px;line-height:1.2;margin:0;text-wrap:balance}
 h2{font:inherit;color:var(--mu);font-size:12.5px;margin:8px 0 0}
 p{margin:0}
@@ -166,7 +166,17 @@ polygon.fxsh{fill:var(--shc);stroke:var(--shc);stroke-width:3;stroke-linejoin:ro
 .sbe>button.bad i{color:var(--ac-l);font-weight:700}.sbe>button.bad span{text-decoration:underline wavy var(--ac-l);text-underline-offset:3px}
 .kp{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .kp button{min-height:48px;border-radius:12px;border:1.5px solid var(--bd);text-align:center;font-family:var(--f-d);font-weight:700;font-size:17px}
-.sheet{position:sticky;bottom:12px;background:var(--sf);border:1.5px solid var(--bd);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+.sheet{position:sticky;bottom:calc(72px + env(safe-area-inset-bottom,0px));background:var(--sf);border:1.5px solid var(--bd);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+.fbt.fbs{min-height:60px}
+.fbt.fbi{min-height:48px}
+/* barra delle segnalazioni: sempre in fondo allo schermo, sopra tutte le schermate. La pagina e le schede lasciano lo spazio per non finirci sotto. */
+.tbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--sf);border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tbar>div{max-width:440px;margin:0 auto;display:flex;gap:8px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.tbar button{min-height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:14px;padding:4px 10px;text-align:center;white-space:nowrap}
+.tbar .tb1{flex:1;min-width:0;border:1.5px solid var(--bd)}
+.tbar .tb1 svg{flex:none;width:20px;height:20px;fill:none;stroke:var(--in);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tbar .tb2{flex:none;background:var(--ac-soft);box-shadow:inset 0 0 0 1.5px var(--ac)}
+@media (max-width:340px){.tbar button{font-size:13px;gap:6px;padding:4px 8px}}
 /* disegni: pieno = adesso, contorno sottile = prima, tratteggio = stima */
 .lb{fill:var(--lane)}.la{fill:var(--lane-ap)}.lo{fill:var(--oil)}.l5{fill:var(--lane-5)}.gt{fill:var(--bg)}
 .ll{stroke:var(--lane-b);stroke-width:.6}.lf{stroke:var(--tx);stroke-width:2}
@@ -193,18 +203,18 @@ polygon.fxsh{fill:var(--shc);stroke:var(--shc);stroke-width:3;stroke-linejoin:ro
 <script>
 const KEY='bowl-proto7';
 const INIT=()=>({hand:'R',sty:1,lay:6,line:{start:19,orient:0,arrive:19,target:10},own:false,setup:false,ball:'hook',ballKnown:true,spb:false,bpo:null,today:null,todayAt:'',spl:{},diary:[],adv:false,
- view:'setup',su:0,prob:null,step:0,ans:{},res:null,phase:0,note:'',back:'home',sp:[],gl:null,lookQ:null,layBack:'home',profBack:'home',lineEdit:'base',fresh:false,wipe:false,rdl:null,rdn:0,fb:[],fbs:null,fbc:'',gm:null,games:[],gsel:[],gq:false,gdq:null,spFrom:'',shc:'',ex:null,exc:null,gpt:null,gph:null,ge:null,gan:null,exFrom:'',exa:null,exp:false,ext:0,exk:null,exs:false});
+ view:'setup',su:0,prob:null,step:0,ans:{},res:null,phase:0,note:'',back:'home',sp:[],gl:null,lookQ:null,layBack:'home',profBack:'home',lineEdit:'base',fresh:false,wipe:false,rdl:null,rdn:0,fb:[],fbn:'',fbs:null,fbc:'',gm:null,games:[],gsel:[],gq:false,gdq:null,spFrom:'',shc:'',ex:null,exc:null,gpt:null,gph:null,ge:null,gan:null,exFrom:'',exa:null,exp:false,ext:0,exk:null,exs:false});
 const S=INIT();
 try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d){
  if(d.hand==='L'||d.hand==='R')S.hand=d.hand;if(d.sty===2)S.sty=2;if(d.line&&d.line.start)S.line=d.line;if(Array.isArray(d.diary))S.diary=d.diary;
  S.own=!!d.own;S.setup=!!d.setup;S.adv=!!d.adv;if(d.ball==='str'||d.ball==='hook')S.ball=d.ball;S.ballKnown=d.ballKnown!==false;S.spb=!!d.spb;
- if(d.lay>=4&&d.lay<=10)S.lay=d.lay;if(d.bpo>=1&&d.bpo<=39)S.bpo=d.bpo;if(d.today&&d.today.start){S.today=d.today;S.todayAt=d.todayAt||'';}if(d.splv===2&&d.spl&&typeof d.spl==='object')S.spl=d.spl;if(Array.isArray(d.fb))S.fb=d.fb.slice(0,40);
+ if(d.lay>=4&&d.lay<=10)S.lay=d.lay;if(d.bpo>=1&&d.bpo<=39)S.bpo=d.bpo;if(d.today&&d.today.start){S.today=d.today;S.todayAt=d.todayAt||'';}if(d.splv===2&&d.spl&&typeof d.spl==='object')S.spl=d.spl;if(Array.isArray(d.fb))S.fb=d.fb.slice(0,40);if(typeof d.fbn==='string')S.fbn=d.fbn.slice(0,40);
  if(d.gm&&Array.isArray(d.gm.r))S.gm=d.gm;if(Array.isArray(d.games))S.games=d.games.filter(g=>g&&Array.isArray(g.r)).slice(0,50);}}catch(e){}
 /* Due linee da strike: S.line è l'abituale, S.today quella di oggi (null se coincidono). I consigli partono da cur(). */
 const DAY=(()=>{const d=new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;})();
 if(S.setup)S.view=S.today&&S.todayAt!==DAY?'endday':'home';
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({hand:S.hand,sty:S.sty,line:S.line,diary:S.diary,own:S.own,setup:S.setup,adv:S.adv,ball:S.ball,ballKnown:S.ballKnown,spb:S.spb,lay:S.lay,bpo:S.bpo,today:S.today,todayAt:S.todayAt,spl:S.spl,splv:2,fb:S.fb,gm:S.gm,games:S.games}))}catch(e){}};
-const LABEL=()=>window.BOWL_LABEL||'Prototipo · versione 25';
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify({hand:S.hand,sty:S.sty,line:S.line,diary:S.diary,own:S.own,setup:S.setup,adv:S.adv,ball:S.ball,ballKnown:S.ballKnown,spb:S.spb,lay:S.lay,bpo:S.bpo,today:S.today,todayAt:S.todayAt,spl:S.spl,splv:2,fb:S.fb,gm:S.gm,games:S.games,...(S.fbn?{fbn:S.fbn}:{})}))}catch(e){}};
+const LABEL=()=>window.BOWL_LABEL||'Prototipo · versione 26';
 const RH=()=>S.hand==='R',out=()=>RH()?'destra':'sinistra',inn=()=>RH()?'sinistra':'destra',foot=()=>RH()?'sinistro':'destro';
 /* Stile di tiro: 1 = una mano, 2 = due mani. Piedi e mira si calcolano allo stesso modo; cambiano spare, velocità ed esercizi sul gesto. */
 const TWO=()=>S.sty===2;
@@ -414,7 +424,7 @@ function solveSpare(){const l=cur(),cs=S.sp.map(P),pln=planLeave(cs),k=pln.K,grp
   if(pln.kind==='pair'){what=`Mettiti a metà fra la posizione del birillo ${pr[0]} e quella del ${pr[1]}: la palla li tocca tutti e due.${grp.length>2?' Gli altri cadono spinti da questi.':''}`;head=`fra ${art(pr[0])} e ${art(pr[1])}`;}
   else if(pln.kind==='between'){const mp=[1,2,3,4,5,6,7,8,9,10].find(p=>Math.abs(PINX[p-1]-xk)<.6&&PINR[p-1]>pln.row&&!cs.includes(p));
    what=`La palla è più larga dello spazio fra ${art(pr[0])} e ${art(pr[1])}: se passa nel mezzo li tocca tutti e due.${mp?` Mira al punto dove stava ${art(P(mp))}.`:''}`;head=`fra ${art(pr[0])} e ${art(pr[1])}`;}
-  else if(pln.kind==='slide'){what=`È un tiro difficile. La palla deve sfiorare ${art(pk)} sul lato ${PINX[pln.T-1]>PINX[k-1]?out():inn()}, così scivola verso ${art(pT)}. Se sbagli di poco verso l'esterno non tocchi niente: decidi tu se rischiare.`;head=`sfiora ${art(pk)}`;}
+  else if(pln.kind==='slide'){what=`È un tiro difficile. La palla deve sfiorare ${art(pk)} sul lato ${(PINX[pln.T-1]>PINX[k-1])===RH()?'destro':'sinistro'}, così scivola verso ${art(pT)}. Se sbagli di poco verso l'esterno non tocchi niente: decidi tu se rischiare.`;head=`sfiora ${art(pk)}`;}
   else{what=`Il birillo chiave è ${art(pk)}, quello più avanti: colpiscilo in pieno, come se fosse da solo. La palla e il birillo ${pk} portano via gli altri. Serve più precisione che per un birillo solo.`;head=`${art(pk)} in pieno`;}}
  if(pln.imp){what=`Questo split si chiude solo con un rimbalzo fortunato. Meglio prendere ${tkn} che rischiare di non toccare niente.${what?' '+what:''}`;head=`prendi ${tkn}`;}
  if(head)head=(pln.imp||pln.kind==='slide'||(pln.kind==='between'&&grp.length===2)?'Split ':'Spare ')+nm+': '+head;
@@ -633,7 +643,7 @@ function vProf(){const orBad=S.own?chkLine(S.line).bad:null;return `${hdr(true)}
  ${S.ball==='hook'?`<div class="card col"><div class="t tl">${I.ball2()}${gw('spareball','Palla da spare')}</div>${sw2('spb','Palla da spare',S.spb?'1':'0',[['1',"Ce l'ho"],['0','Non ce l\'ho']])}</div>`:''}
  <div class="card col"><div class="t tl">${I.feet(S.line.orient===0?0:((S.line.orient<0)===RH()?16:-16))}${gw('orient','Orientamento di piedi e spalle')}</div>${orSw('por',S.line)}<div class="mu">${orNote()}</div>${orBad?`<div class="hint w"><div><b>Con questo orientamento la tua linea abituale non funziona.</b> ${badTxt(orBad)}</div><button class="btn" data-act="line" data-v="base">Controlla la linea</button></div>`:''}</div>
  <div class="card"><div class="advr"><div><div class="mu">${gw('piedepalla','Distanza piede-palla')}</div><b style="font-family:var(--f-d);font-size:18px">${S.lay} listelli</b></div><button class="lnk" data-act="layv">Misura o modifica</button></div></div>
- <div class="card"><div class="advr"><div><div class="t">Cose da rivedere</div><div class="mu">${S.fb.length?`${S.fb.length} ${S.fb.length===1?'nota':'note'} da mandare a chi sviluppa l'app`:'Le note che prendi in sala'}</div></div><button class="lnk" data-act="go" data-v="fbl">Apri</button></div></div>
+ <div class="card"><div class="advr"><div><div class="t">Cose da rivedere</div><div class="mu">${S.fb.length?(n=>n===S.fb.length?`${fbN(n)} da mandare a chi sviluppa l'app`:n?`${fbN(S.fb.length)}, ${n} da inviare`:S.fb.length===1?'1 nota, già inviata':`${S.fb.length} note, tutte già inviate`)(fbNew().length):'Le note che prendi in sala'}</div></div><button class="lnk" data-act="go" data-v="fbl">Apri</button></div></div>
  <button class="btn2" data-act="resetup">Rifai la configurazione iniziale</button>
  ${S.wipe?'<div class="hint w"><div><b>Cancello tutto?</b> Profilo, linee, diario e partite tornano come al primo avvio. Le cose da rivedere restano.</div><div class="row"><button class="btn" data-act="wipeok">Sì, azzera</button><button class="btn2" data-act="wipeno">Annulla</button></div></div>':'<button class="btn2" data-act="wipe">Azzera tutto, per un\'altra persona</button>'}`;}
 function vGloss(){return `${hdr(true)}<h1>Parole del bowling</h1>${Object.keys(G).map(k=>`<div class="card gi">${gico(k)}<div><div class="t">${G[k][0]}</div><div class="mu">${gdef(k)}</div></div></div>`).join('')}`;}
@@ -720,7 +730,7 @@ function vSpSol(){const r=S.res,name=S.sp.slice().sort((a,b)=>a-b).join('-'),end
   <div class="card">${lineCard(r.before)}</div>${readCard(r)}<div class="row"><button class="btn" data-act="line">Controlla la linea</button><button class="btn2" data-act="home">Torna al menù</button></div>${fbLink}`;
  const af=r.after,b=r.before,df=af.start-b.start,N={line:af,shot:mkShot(af,r.xk,r.straight,false,r.Dv)};N.shot.tm=r.straight;
  const bad=mkShot(af,r.xk,r.straight,false,r.D).bad;
- const feet=r.abs?`<div class="big">${cap(ftName(af.start))}</div><div class="mu">Bordo interno del piede ${foot()} sul listello ${af.start}.${dotNote(af.start)}${S.own&&df?` Sono ${mvTxt(df)} dalla tua linea ${S.today?'di oggi':'da strike'}.`:''}</div><div class="lanebox">${moveFig(null,af.start,true,0,oAng(af))}</div>`
+ const feet=r.abs?`<div class="big">${cap(ftName(af.start))}</div><div class="mu">Bordo interno del piede ${foot()} sul listello ${af.start}.${dotNote(af.start)}${S.own&&df?` ${cap(mvTxt(df))} rispetto alla tua linea ${S.today?'di oggi':'da strike'}.`:''}</div><div class="lanebox">${moveFig(null,af.start,true,0,oAng(af))}</div>`
   :(df===0?'<div class="big">Resta dove sei</div>':`<div class="big">${cap(mvTxt(df))}</div><div class="mu">${cap(shoeTxt(Math.abs(df)))}${S.own?`: dal listello ${b.start} al ${af.start}`:', rispetto a dove parti per lo strike'}.</div><div class="lanebox">${moveFig(b.start,af.start,S.own,oAng(b),oAng(af))}</div>`);
  const aim=r.abs?`<div class="big">${cap(tgName(af.target))}</div><div class="lanebox">${aimFig(af.target)}</div>`:`<div class="big">Stessa mira dello strike</div>${S.own?`<div class="mu">${cap(tgName(af.target))}.</div>`:''}`;
  const ball=!r.straight||S.ball==='str'?'':TWO()?(S.spb?`<div class="card"><div class="tag">Palla</div><div class="t">Usa la ${gw('spareball','palla da spare')} e tieni le mani piatte dietro la palla.</div><div class="mu">A due mani la palla gira molto. Con le mani piatte rotola in avanti senza girare di lato. Aiuta anche tirare un po' più veloce: con passi più rapidi, non con le braccia.</div></div>`
@@ -756,38 +766,93 @@ function fbCtx(){const r=S.res,ln=l=>`piedi ${l.start}, mira ${l.target}${l.orie
  if(S.view==='sol'&&r&&S.prob){const mv=r.after&&r.before&&!r.none?moveSum(r.after.start-r.before.start,r.after.target-r.before.target):'';
   return{s:PROB[S.prob].name(),d:`${r.title||'Consiglio'}${r.ans&&r.ans.length?' ('+r.ans.join(', ')+')':''}${mv?': '+mv:''}${S.phase===1?' · alternativa':''}`};}
  return{s:'Schermata '+S.view,d:''};}
-const fbText=()=>[`App Bowling · ${LABEL()} · cose da rivedere: ${S.fb.length}`,...S.fb.slice().reverse().map((e,i)=>[`\n${i+1}) ${e.t} · ${e.s}`,e.d?`   Consiglio: ${e.d}`:'',e.w?`   Cosa non va: ${e.w}`:'',e.x?`   Nota: ${e.x}`:'',`   Profilo: ${e.p}`].filter(Boolean).join('\n')),
+/* Segnalazioni dei tester: la barra in fondo allo schermo apre una scheda su qualsiasi schermata. Una segnalazione è una nota con in più k (errore, modifica o segnalazione),
+   y (come dovrebbe essere) e dev (telefono e browser). L'app non manda niente da sola: ogni nota ha v=1 da quando chi la scrive l'ha inviata o copiata, e la barra conta le altre. */
+const FBK={bug:'Errore',mod:'Modifica',seg:'Segnalazione'};
+const fbNew=()=>S.fb.filter(e=>!e.v),fbN=n=>`${n} ${n===1?'nota':'note'}`;
+const fbDev=()=>{const u=navigator.userAgent||'',os=/iPhone|iPad|iPod/.test(u)?'iPhone o iPad':/Android/.test(u)?'Android':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':/Linux/.test(u)?'Linux':'altro sistema',
+ br=/SamsungBrowser/.test(u)?'Samsung Internet':/Edg/.test(u)?'Edge':/FxiOS|Firefox/.test(u)?'Firefox':/CriOS|Chrome/.test(u)?'Chrome':/Safari/.test(u)?'Safari':'altro browser';
+ let inst=false,lt=false;try{inst=!!navigator.standalone||matchMedia('(display-mode: standalone)').matches;lt=matchMedia('(prefers-color-scheme: light)').matches;}catch(e){}
+ return `${os}, ${br}, schermo ${innerWidth}×${innerHeight}, tema ${lt?'chiaro':'scuro'}, ${inst?'app installata':'nel browser'}`;};
+/* Dove si trovava chi segnala: il consiglio mostrato, se c'è, altrimenti il titolo della schermata come lo legge lui. */
+function bugCtx(){const c=fbCtx(),h=document.querySelector('#app h1'),t=h?h.textContent.trim():'';return c.s.indexOf('Schermata ')===0&&t?{s:`Schermata "${t}"`,d:''}:c;}
+const fbLine=(e,i)=>[`\n${i+1}) ${e.t} · ${e.k?FBK[e.k]+' · ':''}${e.s}`,e.d?`   Consiglio: ${e.d}`:'',e.w?`   Cosa non va: ${e.w}`:'',e.x?`   ${e.k?'Cosa non va':'Nota'}: ${e.x}`:'',e.y?`   Come dovrebbe essere: ${e.y}`:'',`   Profilo: ${e.p}`,e.dev?`   Dispositivo: ${e.dev}`:''].filter(Boolean).join('\n');
+const fbText=(l=S.fb)=>[`App Bowling · ${LABEL()} · cose da rivedere: ${l.length}`,...l.slice().reverse().map(fbLine),
  ...(S.diary.length?['\nDiario di chi ha il telefono adesso:',...S.diary.map(e=>`- ${e.p} · ${e.lab||(e.ok?'Ha funzionato':'Non risolto')} · ${e.x}`)]:[])].join('\n');
+/* Invio al foglio. FBURL è l'indirizzo di uno script di Google legato a un foglio (tools/segnalazioni-foglio.gs): lo mette build.js, da package.json.
+   Senza indirizzo l'app non manda niente. Con l'indirizzo le note partono da sole quando si salvano, quando si apre l'app e quando torna la rete.
+   Una nota è inviata (v=1) solo quando il foglio risponde di averla scritta; ha un id, così se parte due volte il foglio la scrive una volta. Il diario non parte. */
+const FBURL=()=>window.BOWL_SEGNALA||'';
+const FBTX={go:'Invio in corso…',ok:`Inviata a chi sviluppa l'app. Resta anche qui, in "Cose da rivedere".`,
+ net:"Non c'è rete, o il foglio delle segnalazioni non risponde. Quello che hai scritto resta da inviare: l'app riprova da sola quando la riapri.",
+ err:'Il foglio delle segnalazioni ha risposto con un errore. Quello che hai scritto resta da inviare: puoi copiare il testo e mandarlo a mano.'};
+const fbId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const fbRow=e=>{const miss=!e.k&&e.s==='Consiglio che manca';return{id:e.id,t:e.t,chi:e.n||'',tipo:e.k?FBK[e.k]:miss?e.s:'Nota su un consiglio',dove:miss?'':e.s,consiglio:e.d||'',cosa:[e.w,e.x].filter(Boolean).join(' · '),come:e.y||'',profilo:e.p,dev:e.dev||fbDev()};};
+let fbRun=null;
+function fbPush(){const url=FBURL();if(!url)return Promise.resolve('off');
+ if(fbRun)return fbRun.then(()=>fbPush());
+ const l=fbNew();if(!l.length)return Promise.resolve('none');
+ l.forEach(e=>{if(!e.id)e.id=fbId();});save();
+ if(navigator.onLine===false)return Promise.resolve('net');
+ let ac=null,tm=0,q;try{ac=new AbortController();tm=setTimeout(()=>ac.abort(),20000);}catch(e){}
+ try{q=fetch(url,{method:'POST',body:JSON.stringify({app:'assistente-bowling',versione:LABEL(),note:l.map(fbRow)}),signal:ac?ac.signal:undefined});}catch(e){q=Promise.reject(e);}
+ fbRun=q.then(r=>r.json().then(j=>!!(j&&j.ok),()=>false),()=>null).then(ok=>{clearTimeout(tm);fbRun=null;if(ok){l.forEach(e=>{e.v=1;});save();}return ok?'ok':ok===false?'err':'net';});
+ return fbRun;}
+/* Invio che aggiorna lo schermo. f è la scheda da cui è partito: se è ancora quella aperta dice com'è andata, e la barra rifà il conto.
+   Se intanto si sta scrivendo un'altra nota lo schermo non si ridisegna. */
+function fbAuto(f){return fbPush().then(st=>{if(f&&S.fbs===f)f.tx=st==='none'?'ok':st;const g=S.fbs;if(!(g&&!g.done&&!g.send))render();return st;});}
+const fbMan=t=>`<p class="hint">Da qui non riesco a copiare da solo. Tieni premuto sul testo qui sotto, scegli "Seleziona tutto" e poi "Copia".</p><textarea class="fbt fbx" readonly aria-label="Testo da copiare">${esc(t)}</textarea>`;
+function fbSend(f){const n=fbNew().length,web=!!FBURL(),sh=web||!!navigator.share,bad=web&&(f.tx==='net'||f.tx==='err'),
+  go=`<div class="row">${sh?'<button class="btn" data-act="fbsend">Invia adesso</button>':''}<button class="${sh?'btn2':'btn'}" data-act="fbsendc">Copia il testo</button></div>`,
+  end='<button class="btn2" data-act="fbx">Chiudi</button>',box=(t,b)=>`<div class="sheet" role="dialog" aria-label="Invia le note"><div class="t">${t}</div>${b}</div>`;
+ if(web&&f.tx==='go')return box(FBTX.go,end);
+ if(web&&f.tx==='ok')return box('Fatto.',`<p class="mu">Le note sono arrivate a chi sviluppa l'app. Restano anche qui, in "Cose da rivedere".</p>${end}`);
+ if(f.st==='sh')return box('Fatto.',`<p class="mu">Se hai scelto a chi mandarla e hai premuto invia, la segnalazione è partita. Le note restano in "Cose da rivedere".</p>${end}`);
+ if(f.st==='ok')return box('Copiato.',`<p class="mu">Adesso incollalo in un messaggio per chi sviluppa l'app.</p>${end}`);
+ if(f.st==='man')return box('Copia il testo a mano',`${fbMan(f.t)}<div class="row"><button class="btn" data-act="fbsent">L'ho copiato</button><button class="btn2" data-act="fbx">Chiudi</button></div>`);
+ if(!n)return box('Niente da inviare',`<p class="mu">Le note già inviate restano nel Profilo, in "Cose da rivedere".</p>${end}`);
+ return box(f.st==='no'||bad?'Non inviato.':`${fbN(n)} da inviare`,`<p class="mu">${bad?FBTX[f.tx]:f.st==='no'?"L'invio non è partito. Puoi riprovare o copiare il testo.":web?"Partono da sole quando c'è rete. Se sono ancora qui l'ultimo invio non è riuscito: puoi riprovare adesso.":"Arrivano a chi sviluppa l'app solo se le invii tu: l'app non manda niente da sola."}</p>${go}<div class="row"><button class="btn2" data-act="go" data-v="fbl">Vedi l'elenco</button><button class="btn2" data-act="fbx">Chiudi</button></div>`);}
+const tbar=()=>{const n=fbNew().length;return `<div class="tbar" role="region" aria-label="Segnalazioni per chi sviluppa l'app"><div><button class="tb1" data-act="bug"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7a3 3 0 0 1 6 0"/><rect x="7.5" y="7" width="9" height="12.5" rx="4.5"/><path d="M12 11.5v8M7.5 11.5H4M7.5 15.5H4M16.5 11.5H20M16.5 15.5H20M7.6 8.2 5.5 6M16.4 8.2 18.5 6"/></svg><span>Segnala bug o modifica</span></button>${n?`<button class="tb2" data-act="bugs" aria-label="${fbN(n)} da inviare">${n} da inviare</button>`:''}</div></div>`;};
 function fbSheet(){const f=S.fbs;if(!f)return'';
- if(f.done)return `<div class="sheet" role="dialog" aria-label="Segnato"><div class="t">Segnato.</div><p class="mu">Lo trovi nel Profilo, in "Cose da rivedere": da lì copi tutto e lo mandi a chi sviluppa l'app.</p><button class="btn2" data-act="fbx">Chiudi</button></div>`;
+ if(f.send)return fbSend(f);
+ if(f.done)return `<div class="sheet" role="dialog" aria-label="Segnato"><div class="t">${f.bug?'Segnalazione salvata.':'Segnato.'}</div>${FBURL()?`<p class="mu" aria-live="polite">${FBTX[f.tx]||FBTX.go}</p><div class="row">${f.tx==='net'?'<button class="btn" data-act="fbsend">Riprova</button>':f.tx==='err'?'<button class="btn" data-act="fbsendc">Copia il testo</button>':''}<button class="btn2" data-act="fbx">Chiudi</button></div></div>`:`<p class="mu">Resta su questo telefono finché non la invii a chi sviluppa l'app. La ritrovi nel Profilo, in "Cose da rivedere".</p><div class="row"><button class="btn" data-act="${navigator.share?'fbsend':'fbsendc'}">${navigator.share?'Invia adesso':'Copia il testo'}</button><button class="btn2" data-act="fbx">${f.bug?'Dopo':'Chiudi'}</button></div></div>`}`;
  const ok=f.txt.trim()||(!f.miss&&f.why);
+ if(f.bug)return `<div class="sheet" role="dialog" aria-label="Segnala un errore o una modifica"><div class="t">Cosa vuoi segnalare?</div>
+  <p class="mu">${esc(f.ctx.s)}${f.ctx.d?': '+esc(f.ctx.d):''}</p>
+  <div class="fbo" role="group" aria-label="Tipo di segnalazione">${[['bug','Un errore'],['mod','Una modifica']].map(([k,t])=>`<button data-act="bugk" data-v="${k}" aria-pressed="${f.kind===k}">${t}</button>`).join('')}</div>
+  <textarea class="fbt fbs" id="fbt" maxlength="500" aria-label="Cosa non va" placeholder="Cosa non va">${esc(f.txt)}</textarea>
+  <textarea class="fbt fbs" id="fby" maxlength="500" aria-label="Come dovrebbe essere" placeholder="Come dovrebbe essere, se lo sai">${esc(f.fix)}</textarea>
+  ${FBURL()?`<input class="fbt fbi" id="fbn" maxlength="40" aria-label="Il tuo nome" placeholder="Il tuo nome, se vuoi" value="${esc(S.fbn)}">
+  <p class="mu">Quando salvi, la segnalazione viene inviata a chi sviluppa l'app, con la schermata, il profilo e il tipo di telefono.</p>`:'<p class="mu">Con il testo si salvano la schermata, il profilo e il tipo di telefono.</p>'}
+  <div class="row"><button class="btn ${ok?'':'dis'}" data-act="fbsave" ${ok?'':'aria-disabled="true"'}>Salva</button><button class="btn2" data-act="fbx">Annulla</button></div></div>`;
  return `<div class="sheet" role="dialog" aria-label="${f.miss?'Consiglio che manca':'Cosa non va'}"><div class="t">${f.miss?'Che consiglio cercavi?':'Cosa non va in questo consiglio?'}</div>
   ${f.miss?'<p class="mu">Scrivi la situazione in cui ti serviva un aiuto e non l\'hai trovato.</p>':`<p class="mu">${esc(f.ctx.s)}${f.ctx.d?': '+esc(f.ctx.d):''}</p><div class="fbo" role="group" aria-label="Cosa non va">${Object.keys(FBW).map(k=>`<button data-act="fbw" data-v="${k}" aria-pressed="${f.why===k}">${FBW[k]}</button>`).join('')}</div>`}
-  <textarea class="fbt" id="fbt" maxlength="300" aria-label="Nota" placeholder="${f.miss?'Per esempio: la palla finisce spesso nel canale':'Due parole, se vuoi'}">${esc(f.txt)}</textarea>
+  <textarea class="fbt" id="fbt" maxlength="300" aria-label="Nota" placeholder="${f.miss?'Per esempio: la palla finisce spesso nel canale':'Due parole, se vuoi'}">${esc(f.txt)}</textarea>${FBURL()?'\n  <p class="mu">Quando salvi, la nota viene inviata a chi sviluppa l\'app, con il profilo e il tipo di telefono.</p>':''}
   <div class="row"><button class="btn ${ok?'':'dis'}" data-act="fbsave" ${ok?'':'aria-disabled="true"'}>Salva</button><button class="btn2" data-act="fbx">Annulla</button></div></div>`;}
 function vFb(){const n=S.fb.length;return `${hdr(true)}<h1>Cose da rivedere</h1>
- <p class="mu">Qui trovi i consigli che non ti hanno convinto e quelli che cercavi senza trovarli. Restano anche dopo "Azzera tutto".</p>
- ${n?`<div class="card">${S.fb.map((e,i)=>`<div class="dy"><div style="flex:1;min-width:0"><div class="t">${esc(e.s)}</div>${e.d?`<div class="mu">${esc(e.d)}</div>`:''}${e.w?`<div class="mu"><b>${esc(e.w)}</b></div>`:''}${e.x?`<div>${esc(e.x)}</div>`:''}<div class="mu">${esc(e.t)} · ${esc(e.p)}</div></div><button class="lnk" data-act="fbdel" data-v="${i}" aria-label="Togli la nota ${i+1}">Togli</button></div>`).join('')}</div>
+ <p class="mu">Qui trovi i consigli che non ti hanno convinto, quelli che cercavi senza trovarli e gli errori o le modifiche che hai segnalato dalla barra in fondo. Restano anche dopo "Azzera tutto".${FBURL()?" Partono da sole verso chi sviluppa l'app quando c'è rete.":''}</p>
+ ${n?`<div class="card">${S.fb.map((e,i)=>`<div class="dy"><div style="flex:1;min-width:0"><div class="t">${e.k?FBK[e.k]+' · ':''}${esc(e.s)}</div>${e.d?`<div class="mu">${esc(e.d)}</div>`:''}${e.w?`<div class="mu"><b>${esc(e.w)}</b></div>`:''}${e.x?`<div>${esc(e.x)}</div>`:''}${e.y?`<div><span class="mu">Come dovrebbe essere:</span> ${esc(e.y)}</div>`:''}<div class="mu">${esc(e.t)} · ${esc(e.p)}</div>${e.v?'':'<span class="pill ok" style="display:inline-block;margin-top:4px">Da inviare</span>'}</div><button class="lnk" data-act="fbdel" data-v="${i}" aria-label="Togli la nota ${i+1}">Togli</button></div>`).join('')}</div>
  <p class="mu">Il testo copiato contiene queste note e il diario.</p>
  <div class="row"><button class="btn" data-act="fbcopy">Copia tutto</button>${navigator.share?'<button class="btn2" data-act="fbshare">Condividi</button>':''}</div>
  ${S.fbc==='ok'?'<p class="hint">Copiato. Incollalo nel messaggio per chi sviluppa l\'app.</p>':''}
- ${S.fbc==='man'?`<p class="hint">Da qui non riesco a copiare da solo. Tieni premuto sul testo qui sotto, scegli "Seleziona tutto" e poi "Copia".</p><textarea class="fbt fbx" readonly aria-label="Testo da copiare">${esc(fbText())}</textarea>`:''}
+ ${S.fbc==='man'?fbMan(fbText()):''}
  ${S.fbc==='del'?'<div class="hint w"><div><b>Cancello tutte le note?</b></div><div class="row"><button class="btn" data-act="fbwipe">Sì, cancella</button><button class="btn2" data-act="fbkeep">Annulla</button></div></div>':'<button class="lnk" data-act="fbwipe">Cancella tutte le note</button>'}`
- :'<div class="card"><p class="mu">Ancora niente. Quando un consiglio non ti convince, tocca "Questo consiglio non mi convince" in fondo alla schermata.</p></div>'}`;}
+ :'<div class="card"><p class="mu">Ancora niente. Quando un consiglio non ti convince, tocca "Questo consiglio non mi convince" sotto il consiglio. Per un errore o una modifica, tocca "Segnala bug o modifica" nella barra in fondo.</p></div>'}`;}
 /* ---- partita: dopo ogni tiro si segnano i birilli rimasti in piedi, con i numeri come li vede chi gioca. Punteggio ufficiale:
    strike = 10 più i due tiri dopo, spare = 10 più il tiro dopo, nel decimo frame uno o due tiri in più (USBC "Keeping Score").
    Dai birilli rimasti escono le statistiche, la lettura del tiro da strike e il collegamento al consiglio per lo spare. ---- */
 const ALLP=[1,2,3,4,5,6,7,8,9,10],pkey=a=>a.slice().sort((x,y)=>x-y).join('-'),pct=(a,b)=>b?Math.round(100*a/b)+'%':'–';
 const artK=a=>{const s=a.slice().sort((x,y)=>x-y);return art(s[0])+(s.length>1?'-'+s.slice(1).join('-'):'');};
 function gmCalc(R){const fr=[],sh=[],k=[];let i=0,next=null;
- for(let f=0;f<10&&!next;f++){const F={c:[],full:[],i,cum:null};fr.push(F);let rack=ALLP;
+ /* full: il tiro parte con i dieci birilli appena rimessi. Dopo un tiro a vuoto i dieci birilli in piedi sono quelli di prima: abbatterli tutti è uno spare, non uno strike. */
+ for(let f=0;f<10&&!next;f++){const F={c:[],full:[],i,cum:null};fr.push(F);let rack=ALLP,fresh=true;
   for(let b=0;b<(f<9?2:3);b++){
-   if(i>=R.length){next={f,b,rack};break;}
-   const s=R[i],full=rack.length===10,n=rack.length-s.length;F.c.push(n);F.full.push(full);k.push(n);
+   if(i>=R.length){next={f,b,rack,full:fresh};break;}
+   const s=R[i],full=fresh,n=rack.length-s.length;F.c.push(n);F.full.push(full);k.push(n);
    if(full)sh.push({lv:s,cv:null,f,i});else{const q=sh[sh.length-1];if(q&&q.f===f&&q.cv===null)q.cv=!s.length;}
    i++;
-   if(f<9){if(!s.length)break;rack=s;}
-   else{if(b===1&&F.c[0]<10&&s.length)break;rack=s.length?s:ALLP;}}}
+   if(f<9){if(!s.length)break;rack=s;fresh=false;}
+   else{if(b===1&&F.c[0]<10&&s.length)break;fresh=!s.length;rack=s.length?s:ALLP;}}}
  let cum=0,run=true,open=0;
  fr.forEach((F,f)=>{const c=F.c,j=F.i;let sc=null;
   if(f<9){if(c[0]===10){if(k.length>j+2)sc=10+k[j+1]+k[j+2];}else if(c.length===2){if(c[0]+c[1]===10){if(k.length>j+2)sc=10+k[j+2];}else sc=c[0]+c[1];}}
@@ -798,7 +863,7 @@ function gmCalc(R){const fr=[],sh=[],k=[];let i=0,next=null;
 const gmMark=(F,b)=>F.full[b]?(F.c[b]===10?'X':F.c[b]||'-'):(F.c[b-1]+F.c[b]===10?'/':F.c[b]||'-');
 const gmBoard=c=>`<div class="sb" role="img" aria-label="Tabellone${c.cum?`: ${c.cum} punti`:''}">${ALLP.map((_,f)=>{const F=c.fr[f];return `<div class="${c.next&&c.next.f===f?'on':''}"><i>${f+1}</i><b>${F?F.c.map((_,b)=>gmMark(F,b)).join(' '):''}</b><span>${F&&F.cum!==null?F.cum:''}</span></div>`;}).join('')}</div>`;
 const gmLine=c=>c.fr.map(F=>F.c.map((_,b)=>gmMark(F,b)).join('')).join(' | ');
-const gmShare=g=>{const c=gmCalc(g.r);return `Bowling, partita del ${g.d}: ${c.cum} punti\n${gmLine(c)}\n${c.st} strike, ${c.sp} spare, ${c.open} frame aperti`;};
+const gmShare=g=>{const c=gmCalc(g.r);return `Bowling, partita del ${g.d}: ${c.cum} punti\n${gmLine(c)}\n${c.st} strike, ${c.sp} spare, ${c.open} frame ${c.open===1?'aperto':'aperti'}`;};
 function gmRoll(s){const g=S.gm;if(!g||g.done)return;g.r.push(s.slice().sort((a,b)=>a-b));S.gsel=[];const c=gmCalc(g.r);
  if(c.done){g.done=true;S.games=S.games.filter(x=>x.t!==g.t);S.games.unshift({t:g.t,d:g.d,sc:c.cum,r:g.r.map(x=>x.slice()),...(g.ph?{ph:1}:{})});S.games=S.games.slice(0,50);}save();}
 /* Lettura del tiro da strike dai birilli appena rimasti. Conta le volte in questa partita, dall'ultima correzione aperta da qui (g.fx). */
@@ -856,7 +921,7 @@ const geMax=(F,f)=>{const n=F.length;if(!n)return 10;if(f<9)return n===1&&F[0]<1
  if(n===1)return F[0]===10?10:10-F[0];if(n===2)return F[0]===10?(F[1]===10?10:10-F[1]):F[0]+F[1]===10?10:-1;return -1;};
 const geTodo=e=>e.f.findIndex((F,f)=>geMax(F,f)!==-1);
 const geR=fs=>{const R=[];fs.forEach((F,f)=>{let rack=10;F.forEach(c=>{rack-=c;R.push(Array(rack).fill(0));if(!rack&&f===9)rack=10;});});return R;};
-const geMk=(F,f)=>{let rack=10;return F.map(c=>{const full=rack===10;rack-=c;const m=full?(c===10?'X':c||'-'):(!rack?'/':c||'-');if(!rack&&f===9)rack=10;return m;});};
+const geMk=(F,f)=>{let rack=10,full=true;return F.map(c=>{rack-=c;const m=full?(c===10?'X':c||'-'):(!rack?'/':c||'-');full=!rack;if(!rack&&f===9)rack=10;return m;});};
 const geNew=()=>{const d=new Date();return{t:Date.now(),d:`${d.getDate()}/${d.getMonth()+1}`,f:ALLP.map(()=>[]),sel:0,st:'start',pl:null,rc:null,rt:null,ai:0,msg:'',ctl:null};};
 const geCalc=e=>{const k=geTodo(e);return{k,c:gmCalc(geR(k<0?e.f:e.f.slice(0,k)))};};
 const geUse=(e,p)=>{e.f=p.f.map(F=>F.slice());e.rc=p.rc;e.rt=p.rt;e.ai=1;e.pl=null;e.st='edit';const k=geTodo(e);e.sel=k<0?0:k;};
@@ -877,7 +942,7 @@ const geBoard=(e,c,bad)=>`<div class="sb sbe">${e.f.map((F,f)=>{const cum=c.fr[f
  return `<button class="${e.sel===f?'on':''}${bad===f?' bad':''}" data-act="gef" data-v="${f}" aria-pressed="${e.sel===f}" aria-label="Frame ${f+1}${F.length?': '+mk:', vuoto'}${bad===f?', da controllare':''}"><i>${f+1}${bad===f?' !':''}</i><b>${mk||'·'}</b><span>${cum!==null?cum:''}</span></button>`;}).join('')}</div>`;
 const geKeys=e=>{const f=e.sel,F=e.f[f],m=geMax(F,f),nav=`<div class="step"><div><div class="tag">Frame ${f+1} di 10</div><div class="t">${m===-1?`${geMk(F,f).join(' ')} <span class="mu">· birilli: ${F.join(', ')}</span>`:`${F.length+1}º tiro: quanti birilli sono caduti?`}</div></div><div class="pm"><button data-act="gefs" data-v="-1" aria-label="Frame precedente">‹</button><button data-act="gefs" data-v="1" aria-label="Frame successivo">›</button></div></div>`;
  if(m===-1)return `<div class="card col">${nav}<button class="btn2" data-act="gecl">Riscrivi questo frame</button></div>`;
- let rack=10;F.forEach(c=>{rack-=c;if(!rack)rack=10;});const full=rack===10;
+ const full=geMk(F.concat(m),f).pop()==='X';
  return `<div class="card col">${nav}<div class="kp">${Array.from({length:m+1},(_,i)=>`<button data-act="gek" data-v="${i}" aria-label="${i===m?(full?'Strike':'Spare: '+i+(i===1?' birillo':' birilli')):i+(i===1?' birillo':' birilli')}">${i===m?(full?'X':'/'):i}</button>`).join('')}</div>${F.length?'<button class="lnk" data-act="gecl">Riscrivi questo frame</button>':''}</div>`;};
 function vGe(){const e=S.ge;if(!e){S.view='gst';return vGst();}const u=PH[e.t],img=u?'<img class="ph phs" src="'+u+'" alt="Foto del tabellone">':'',err=phErr?`<p class="hint w"><span>${phErr}</span></p>`:'';
  if(e.st==='start')return `${hdr(true)}<h1>Salva una partita da una foto</h1>
@@ -939,15 +1004,15 @@ function vGm(){const g=S.gm;if(!g){S.view='gst';return vGst();}const c=gmCalc(g.
   ${shRow()}${shBox()}
   <div class="row"><button class="btn" data-act="gnew">Nuova partita</button><button class="btn2" data-act="go" data-v="gst">Partite e record</button></div>
   ${undo}<button class="lnk" data-act="home">Torna al menù</button>`;}
- const rack=nx.rack,full=rack.length===10,one=rack.length===1,sel=S.gsel.filter(p=>rack.includes(p)),n=sel.length;
+ const rack=nx.rack,full=nx.full,all=rack.length===10,one=rack.length===1,sel=S.gsel.filter(p=>rack.includes(p)),n=sel.length;
  const deck=`<div class="card deck">${[[7,8,9,10],[4,5,6],[2,3],[1]].map(rw=>`<div>${rw.map(p=>rack.includes(p)?`<button class="pn pb ${sel.includes(p)?'a':''}" data-act="gpin" data-v="${p}" aria-pressed="${sel.includes(p)}" aria-label="Birillo ${p}">${p}</button>`:`<span class="pn pb gx" aria-hidden="true">${p}</span>`).join('')}</div>`).join('')}</div>`;
  const btns=n?`<button class="btn" data-act="gok">Segna: ${n===rack.length?(full?'nessun birillo abbattuto':one?'mancato':'restano tutti'):n===1?'resta '+art(sel[0]):'restano '+pkey(sel)}</button><button class="lnk" data-act="gclr">Togli la selezione</button>`
   :`<div class="row"><button class="btn" data-act="gall">${full?'Strike':'Chiuso: spare'}</button><button class="btn2" data-act="gnone">${full?'Nessun birillo abbattuto':one?'Mancato':'Mancato: restano tutti'}</button></div>`;
  return `${hdr(true)}<div><div class="eyebrow">Partita · frame ${nx.f+1} di 10 · ${nx.b+1}º tiro</div><h1>${full?'Quali birilli sono rimasti?':'E adesso, quali restano?'}</h1></div>
  ${gmBoard(c)}
- <p class="mu">${full?'Dopo il tiro tocca i birilli ancora in piedi, come li vedi dalla pedana. Se li hai abbattuti tutti tocca "Strike".':one?`È rimasto ${art(rack[0])}. Dopo il tiro tocca "Chiuso" oppure "Mancato".`:`Sono rimasti i birilli ${pkey(rack)}. Dopo il tiro tocca quelli ancora in piedi, oppure "Chiuso".`}</p>
+ <p class="mu">${full?'Dopo il tiro tocca i birilli ancora in piedi, come li vedi dalla pedana. Se li hai abbattuti tutti tocca "Strike".':one?`È rimasto ${art(rack[0])}. Dopo il tiro tocca "Chiuso" oppure "Mancato".`:all?'Sono rimasti tutti i birilli. Dopo il tiro tocca quelli ancora in piedi, oppure "Chiuso".':`Sono rimasti i birilli ${pkey(rack)}. Dopo il tiro tocca quelli ancora in piedi, oppure "Chiuso".`}</p>
  ${deck}${btns}
- ${full?'':`${rdBox(gmRd())}<button class="btn2" data-act="gadv">Come si chiude ${artK(rack)}?</button>`}
+ ${all?'':`${rdBox(gmRd())}<button class="btn2" data-act="gadv">Come si chiude ${artK(rack)}?</button>`}
  ${undo}<button class="lnk" data-act="gl" data-v="punteggio">Come si conta il punteggio</button>
  ${S.gq?'<div class="hint w"><div><b>Abbandono questa partita?</b> I tiri segnati vanno persi.</div><div class="row"><button class="btn" data-act="gquit">Sì, abbandona</button><button class="btn2" data-act="gkeep">Annulla</button></div></div>':'<button class="lnk" data-act="gquit">Abbandona questa partita</button>'}`;}
 function vGst(){const g=S.gm,cu=g&&!g.done?gmCalc(g.r):null,s=gmStats(),top=s.lv.filter(e=>e.a>e.c).slice(0,3),vv=n=>n===1?'volta':'volte';
@@ -1159,7 +1224,7 @@ function vExd(){const e=EX[S.ex];if(!e){S.view='exl';return vExl();}const x=S.ex
  ${fbLink}<p class="foot">Riassunto di una guida pubblicata, non ancora rivisto da un istruttore.</p>`;}
 const VIEWS={ge:vGe,gm:vGm,gst:vGst,exl:vExl,exd:vExd,fbl:vFb,setup:vSetup,home:vHome,prob:vProb,diary:vDiary,prof:vProf,gloss:vGloss,lay:vLay,line:vLine,q:vQ,look:vLook,sol:vSol,sp:vSp,spsol:vSpSol,endday:vEnd};
 function render(top){const sheet=S.gl&&G[S.gl]?`<div class="sheet" role="dialog" aria-label="Spiegazione"><div class="gi">${gico(S.gl)}<div><div class="t">${G[S.gl][0]}</div><p class="mu">${gdef(S.gl)}</p></div></div><button class="btn2" data-act="glx">Ho capito</button></div>`:'';
- document.getElementById('app').innerHTML=VIEWS[S.view]()+sheet+fbSheet();if(top)window.scrollTo(0,0);if(S.view==='exd')figSync();if(window.B3D)B3D.sync(S.view==='exd'?S.ex:null,S.hand);}
+ document.getElementById('app').innerHTML=VIEWS[S.view]()+sheet+fbSheet()+tbar();if(top)window.scrollTo(0,0);if(S.view==='exd')figSync();if(window.B3D)B3D.sync(S.view==='exd'?S.ex:null,S.hand);}
 function go(v){S.view=v;S.gl=null;S.wipe=false;S.fbs=null;S.fbc='';S.gq=false;S.gdq=null;S.shc='';S.gph=null;phErr='';render(true);}
 const moveSum=(df,dt)=>`Piedi ${df?mvTxt(df):'fermi'}, mira ${dt?mvTxt(dt):'uguale'}`;
 /* Una correzione che ha funzionato sposta la linea di oggi, mai l'abituale. Se ha funzionato l'alternativa, conta la linea dell'alternativa. */
@@ -1183,13 +1248,24 @@ document.getElementById('app').addEventListener('click',e=>{
  if(act==='glx'){S.gl=null;render();return;}
  S.gl=null;
  if(act==='fb'){S.fbs={miss:v==='miss',ctx:v==='miss'?{s:'Consiglio che manca',d:''}:fbCtx(),why:'',txt:''};render();return;}
- if(act==='fbw'){if(S.fbs&&!S.fbs.done){S.fbs.why=S.fbs.why===v?'':v;render();}return;}
+ if(act==='bug'||act==='bugs'){const f=S.fbs;if(f&&!f.done&&!f.send&&(f.bug||f.txt.trim())){if(document.querySelector('.sheet[aria-label="Spiegazione"]'))render();return;}
+  S.fbs=act==='bug'?{bug:true,kind:'',ctx:bugCtx(),txt:'',fix:''}:{send:true,st:''};render();return;}
+ if(act==='bugk'){if(S.fbs&&S.fbs.bug&&!S.fbs.done){S.fbs.kind=S.fbs.kind===v?'':v;render();}return;}
+ if(act==='fbsend'&&FBURL()){const g=S.fbs={send:true,st:'',tx:'go'};render();fbAuto(g);return;}
+ if(act==='fbsend'||act==='fbsendc'){const l=fbNew(),t=fbText(l),fin=st=>{if(st==='sh'||st==='ok'){l.forEach(e=>{e.v=1;});save();}S.fbs={send:true,st,t};render();};
+  if(!l.length){S.fbs={send:true,st:''};render();return;}
+  try{if(act==='fbsend')navigator.share({text:t}).then(()=>fin('sh'),()=>fin('no'));else navigator.clipboard.writeText(t).then(()=>fin('ok'),()=>fin('man'));}catch(e){fin(act==='fbsend'?'no':'man');}return;}
+ if(act==='fbsent'){fbNew().forEach(e=>{e.v=1;});save();S.fbs=null;render();return;}
+ if(act==='fbw'){if(S.fbs&&!S.fbs.done&&!S.fbs.send&&!S.fbs.bug){S.fbs.why=S.fbs.why===v?'':v;render();}return;}
  if(act==='fbx'){S.fbs=null;render();return;}
- if(act==='fbsave'){const f=S.fbs;if(!f||f.done)return;const x=f.txt.trim().slice(0,300),d=new Date();if(!(x||(!f.miss&&f.why)))return;
-  S.fb.unshift({t:`${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`,s:f.ctx.s,d:f.ctx.d,w:f.miss?'':(FBW[f.why]||''),x,p:fbProf()});S.fb=S.fb.slice(0,40);save();S.fbs={done:true};render();return;}
+ if(act==='fbsave'){const f=S.fbs;if(!f||f.done||f.send)return;const x=f.txt.trim().slice(0,f.bug?500:300),d=new Date();if(!(x||(!f.miss&&f.why)))return;
+  const e={t:`${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`,s:f.ctx.s,d:f.ctx.d,w:f.miss?'':(FBW[f.why]||''),x,p:fbProf()};
+  if(f.bug){const y=f.fix.trim().slice(0,500);e.k=f.kind||'seg';if(y)e.y=y;e.dev=fbDev();}
+  if(S.fbn.trim())e.n=S.fbn.trim();
+  S.fb.unshift(e);S.fb=S.fb.slice(0,40);save();const g=S.fbs={done:true,bug:!!f.bug};if(FBURL()){g.tx='go';render();fbAuto(g);}else render();return;}
  if(act==='fbdel'){S.fb.splice(+v,1);S.fbc='';save();render();return;}
- if(act==='fbcopy'){const t=fbText(),fin=ok=>{S.fbc=ok?'ok':'man';if(S.view==='fbl')render();};try{navigator.clipboard.writeText(t).then(()=>fin(true),()=>fin(false));}catch(e){fin(false);}return;}
- if(act==='fbshare'){try{navigator.share({text:fbText()}).catch(()=>{});}catch(e){}return;}
+ if(act==='fbcopy'){const l=S.fb.slice(),t=fbText(),fin=ok=>{if(ok){l.forEach(e=>{e.v=1;});save();}S.fbc=ok?'ok':'man';if(S.view==='fbl')render();};try{navigator.clipboard.writeText(t).then(()=>fin(true),()=>fin(false));}catch(e){fin(false);}return;}
+ if(act==='fbshare'){const l=S.fb.slice();try{navigator.share({text:fbText()}).then(()=>{l.forEach(e=>{e.v=1;});save();if(S.view==='fbl')render();},()=>{});}catch(e){}return;}
  if(act==='fbwipe'){if(S.fbc==='del'){S.fb=[];S.fbc='';save();}else S.fbc='del';render();return;}
  if(act==='fbkeep'){S.fbc='';render();return;}
  S.fbs=null;
@@ -1310,10 +1386,11 @@ document.getElementById('app').addEventListener('click',e=>{
   else if(w==='sol'){if(S.phase===1){S.phase=0;render(true);}else if(S.res&&(S.res.info||!PROB[S.prob].qs.length))go('prob');else{S.step=Math.max(0,PROB[S.prob].qs.length-1);go('q');}}
   else go('home');}
 });
-document.getElementById('app').addEventListener('input',e=>{const f=S.fbs;if(e.target.id!=='fbt'||!f||f.done)return;f.txt=e.target.value.slice(0,300);
+document.getElementById('app').addEventListener('input',e=>{const f=S.fbs;if(!f||f.done||f.send)return;if(e.target.id==='fbn'){S.fbn=e.target.value.slice(0,40);return;}if(e.target.id==='fby'&&f.bug){f.fix=e.target.value.slice(0,500);return;}if(e.target.id!=='fbt')return;f.txt=e.target.value.slice(0,f.bug?500:300);
  const b=document.querySelector('[data-act="fbsave"]'),ok=!!(f.txt.trim()||(!f.miss&&f.why));if(b){b.classList.toggle('dis',!ok);if(ok)b.removeAttribute('aria-disabled');else b.setAttribute('aria-disabled','true');}});
 document.getElementById('gfile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f||!S.gpt)return;if(S.view==='ge'&&S.ge&&S.ge.t===S.gpt)geFile(f);else phSet(S.gpt,f);});
 render();
+if(FBURL()){addEventListener('online',()=>{fbAuto();});if(fbNew().length)setTimeout(fbAuto,1500);}
 (async()=>{const db=await new Promise(res=>{try{const q=indexedDB.open('bowl-foto',1);q.onupgradeneeded=()=>q.result.createObjectStore('f');q.onsuccess=()=>res(q.result);q.onerror=q.onblocked=()=>res(null);}catch(e){res(null);}});
  if(!db){phMem=true;return;}phDb=db;const ks=await phTx('readonly',s=>s.getAllKeys()),vs=await phTx('readonly',s=>s.getAll());if(!Array.isArray(ks)||!Array.isArray(vs))return;
  const live=new Set(S.games.map(x=>x.t));if(S.gm)live.add(S.gm.t);if(S.ge)live.add(S.ge.t);
